@@ -76,6 +76,16 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Sign out
+  const logout = async () => {
+    try {
+      await signOut(auth)
+    } catch (error) {
+      console.error('Error signing out:', error)
+      throw error
+    }
+  }
+
   // Listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
