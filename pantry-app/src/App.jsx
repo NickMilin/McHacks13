@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import { ThemeProvider, ThemeBackground, ThemeToggle } from '@/components/ui/ThemeBackground'
 import { Layout } from '@/components/layout/Layout'
 import { Login } from '@/pages/Login'
 import { Dashboard } from '@/pages/Dashboard'
@@ -82,7 +83,13 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppRoutes />
+        <ThemeProvider>
+          <ThemeBackground />
+          <div className="relative z-10">
+            <AppRoutes />
+          </div>
+          <ThemeToggle />
+        </ThemeProvider>
       </AuthProvider>
     </Router>
   )

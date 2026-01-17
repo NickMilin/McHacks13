@@ -37,10 +37,10 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r bg-card">
+    <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-white/20 dark:border-white/10 bg-white/40 dark:bg-slate-900/50 backdrop-blur-xl">
       <div className="flex h-full flex-col">
         {/* Logo */}
-        <div className="flex h-16 items-center border-b px-6">
+        <div className="flex h-16 items-center border-b border-white/20 dark:border-white/10 px-6">
           <ShoppingBasket className="h-8 w-8 text-primary" />
           <span className="ml-3 text-xl font-bold text-primary">PantryPal</span>
         </div>
@@ -56,7 +56,7 @@ export function Sidebar() {
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    : "text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-white/10"
                 )
               }
             >
@@ -67,7 +67,7 @@ export function Sidebar() {
         </nav>
         
         {/* User Profile & Logout */}
-        <div className="border-t p-4">
+        <div className="border-t border-white/20 dark:border-white/10 p-4">
           {user && (
             <div className="space-y-3">
               <div className="flex items-center gap-3 px-2">
@@ -85,8 +85,8 @@ export function Sidebar() {
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{user.displayName || 'User'}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                  <p className="text-sm font-medium truncate text-slate-800 dark:text-slate-100">{user.displayName || 'User'}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 truncate">{user.email}</p>
                 </div>
               </div>
               <Button 
