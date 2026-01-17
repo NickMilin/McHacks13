@@ -4,7 +4,8 @@ import {
   signInWithPopup, 
   signOut 
 } from 'firebase/auth'
-import { auth, googleProvider } from '@/lib/firebase'
+import { doc, setDoc, getDoc } from 'firebase/firestore'
+import { auth, googleProvider, db } from '@/lib/firebase'
 
 const AuthContext = createContext({})
 
@@ -20,19 +21,57 @@ export function AuthProvider({ children }) {
   const signInWithGoogle = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider)
-      return result.user
+      const user = result.user
+      
+      // Store user information in Firestore
+      const userDocRef = doc(db, 'users', user.uid)
+      const userData = {
+        uid: user.uid,
+        displayName: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        emailVerified: user.emailVerified,
+        createdAt: new Date(),
+        lastSignInAt: new Date()
+      }
+      
+      // Check if user document exists
+      const userDocSnap = await getDoc(userDocRef)
+      if (!userDocSnap.exists()) {
+        // Create new user document
+        await setDoc(userDocRef, {
+          ...userData,
+          createdAt: new Date()
+        })
+      } else {
+        // Update existing user document with last sign-in time
+        await setDoc(userDocRef, {
+          ...userData,
+          lastSignInAt: new Date()
+        }, { merge: true })
+      }
+      
+      return user
     } catch (error) {
       console.error('Error signing in with Google:', error)
       throw error
     }
   }
 
-  // Sign out
-  const logout = async () => {
+  // Get user data from Firestore
+  const getUserData = async (uid) => {
     try {
-      await signOut(auth)
+      const userDocRef = doc(db, 'users', uid)
+      const userDocSnap = await getDoc(userDocRef)
+      
+      if (userDocSnap.exists()) {
+        return userDocSnap.data()
+      } else {
+        console.log('No user document found')
+        return null
+      }
     } catch (error) {
-      console.error('Error signing out:', error)
+      console.error('Error getting user data:', error)
       throw error
     }
   }
@@ -52,6 +91,7 @@ export function AuthProvider({ children }) {
     loading,
     signInWithGoogle,
     logout,
+    getUserData,
     isAuthenticated: !!user
   }
 
