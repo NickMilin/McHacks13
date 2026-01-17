@@ -222,6 +222,65 @@ def get_stats():
     })
 
 # ============================================================
+# CLAUDE AI CHAT
+# ============================================================
+
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    """
+    Chat with Claude AI for pantry assistance
+    Requires ANTHROPIC_API_KEY in environment variables
+    """
+    import anthropic
+    
+    data = request.json
+    messages = data.get('messages', [])
+    
+    # Get API key from environment
+    api_key = os.environ.get('ANTHROPIC_API_KEY')
+    
+    if not api_key:
+        return jsonify({'error': 'ANTHROPIC_API_KEY not configured'}), 500
+    
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        
+        # System prompt for pantry assistant context
+        system_prompt = """You are a helpful pantry and cooking assistant called PantryPal. 
+You help users with:
+- Recipe suggestions based on available ingredients
+- Ingredient substitutions for dietary restrictions or missing items
+- Meal planning tips
+- Food storage and expiration guidance
+- Nutrition information
+- Cooking tips and techniques
+
+Keep responses concise, friendly, and practical. Focus on being helpful for home cooks managing their kitchen pantry."""
+
+        # Format messages for Claude API
+        claude_messages = []
+        for msg in messages:
+            if msg['role'] in ['user', 'assistant']:
+                claude_messages.append({
+                    'role': msg['role'],
+                    'content': msg['content']
+                })
+        
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            system=system_prompt,
+            messages=claude_messages
+        )
+        
+        assistant_message = response.content[0].text
+        return jsonify({'message': assistant_message})
+        
+    except Exception as e:
+        print(f"Claude API error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+# ============================================================
 # MAIN
 # ============================================================
 
