@@ -7,9 +7,12 @@ import {
   BookOpen, 
   Search, 
   Lightbulb,
-  ShoppingCart
+  ShoppingCart,
+  LogOut
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/contexts/AuthContext'
+import { Button } from '@/components/ui/button'
 
 const navItems = [
   { to: '/', icon: Home, label: 'Dashboard' },
@@ -23,6 +26,16 @@ const navItems = [
 ]
 
 export function Sidebar() {
+  const { user, logout } = useAuth()
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
+
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r bg-card">
       <div className="flex h-full flex-col">
@@ -53,11 +66,40 @@ export function Sidebar() {
           ))}
         </nav>
         
-        {/* Footer */}
+        {/* User Profile & Logout */}
         <div className="border-t p-4">
-          <p className="text-xs text-muted-foreground text-center">
-            McHacks 2026 🚀
-          </p>
+          {user && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 px-2">
+                {user.photoURL ? (
+                  <img 
+                    src={user.photoURL} 
+                    alt={user.displayName} 
+                    className="h-8 w-8 rounded-full"
+                  />
+                ) : (
+                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-sm font-medium text-primary">
+                      {user.displayName?.charAt(0) || user.email?.charAt(0) || '?'}
+                    </span>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{user.displayName || 'User'}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </aside>
