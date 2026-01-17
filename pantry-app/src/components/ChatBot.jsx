@@ -9,7 +9,7 @@ export function ChatBot() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: "Hi! I'm your pantry assistant powered by Claude AI. I can help you with recipe ideas, ingredient substitutions, meal planning, and nutrition tips. How can I help you today?"
+      content: "Hi! I'm your pantry assistant powered by ChatGPT. I can help you with recipe ideas, ingredient substitutions, meal planning, and nutrition tips. How can I help you today?"
     }
   ])
   const [input, setInput] = useState('')
@@ -92,7 +92,7 @@ export function ChatBot() {
             </div>
             <div>
               <h3 className="font-semibold">Pantry Assistant</h3>
-              <p className="text-xs opacity-80">Powered by Claude AI</p>
+              <p className="text-xs opacity-80">Powered by AI</p>
             </div>
           </div>
 

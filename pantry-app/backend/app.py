@@ -10,9 +10,11 @@ Run with: python app.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
+load_dotenv()  # Load environment variables from .env if present
 
 # ============================================================
 # PANTRY ENDPOINTS
@@ -24,56 +26,23 @@ recipes = []
 
 @app.route('/api/pantry', methods=['GET'])
 def get_pantry():
-    """Get all pantry items"""
-    return jsonify(pantry_items)
+    return jsonify({'error': 'Not implemented in this build'}), 501
 
 @app.route('/api/pantry', methods=['POST'])
 def add_pantry_item():
-    """Add item to pantry"""
-    item = request.json
-    item['id'] = len(pantry_items) + 1
-    pantry_items.append(item)
-    return jsonify(item), 201
+    return jsonify({'error': 'Not implemented in this build'}), 501
 
 @app.route('/api/pantry/<int:item_id>', methods=['PUT'])
 def update_pantry_item(item_id):
-    """Update pantry item"""
-    item = next((i for i in pantry_items if i['id'] == item_id), None)
-    if item:
-        item.update(request.json)
-        return jsonify(item)
-    return jsonify({'error': 'Item not found'}), 404
+    return jsonify({'error': 'Not implemented in this build'}), 501
 
 @app.route('/api/pantry/<int:item_id>', methods=['DELETE'])
 def delete_pantry_item(item_id):
-    """Delete pantry item"""
-    global pantry_items
-    pantry_items = [i for i in pantry_items if i['id'] != item_id]
-    return jsonify({'success': True})
+    return jsonify({'error': 'Not implemented in this build'}), 501
 
 @app.route('/api/pantry/receipt', methods=['POST'])
 def upload_receipt():
-    """
-    Upload receipt image for OCR processing
-    TODO: Integrate with Gumloop for OCR
-    """
-    if 'receipt' not in request.files:
-        return jsonify({'error': 'No file uploaded'}), 400
-    
-    file = request.files['receipt']
-    
-    # TODO: Send image to Gumloop for OCR processing
-    # Example Gumloop integration:
-    # response = gumloop.process_receipt(file)
-    # extracted_items = response['items']
-    
-    # Placeholder response
-    extracted_items = [
-        {'name': 'Sample Item 1', 'quantity': 1, 'unit': 'count', 'category': 'other'},
-        {'name': 'Sample Item 2', 'quantity': 2, 'unit': 'lbs', 'category': 'protein'},
-    ]
-    
-    return jsonify({'items': extracted_items})
+    return jsonify({'error': 'Not implemented in this build'}), 501
 
 # ============================================================
 # RECIPE ENDPOINTS
@@ -81,102 +50,31 @@ def upload_receipt():
 
 @app.route('/api/recipes', methods=['GET'])
 def get_recipes():
-    """Get all saved recipes"""
-    return jsonify(recipes)
+    return jsonify({'error': 'Not implemented in this build'}), 501
 
 @app.route('/api/recipes', methods=['POST'])
 def add_recipe():
-    """Add new recipe"""
-    recipe = request.json
-    recipe['id'] = len(recipes) + 1
-    recipes.append(recipe)
-    return jsonify(recipe), 201
+    return jsonify({'error': 'Not implemented in this build'}), 501
 
 @app.route('/api/recipes/<int:recipe_id>', methods=['DELETE'])
 def delete_recipe(recipe_id):
-    """Delete recipe"""
-    global recipes
-    recipes = [r for r in recipes if r['id'] != recipe_id]
-    return jsonify({'success': True})
+    return jsonify({'error': 'Not implemented in this build'}), 501
 
 @app.route('/api/recipes/<int:recipe_id>/cook', methods=['POST'])
 def cook_recipe(recipe_id):
-    """
-    Cook recipe - removes used ingredients from pantry
-    """
-    recipe = next((r for r in recipes if r['id'] == recipe_id), None)
-    if not recipe:
-        return jsonify({'error': 'Recipe not found'}), 404
-    
-    # TODO: Deduct ingredients from pantry
-    # for ingredient in recipe['ingredients']:
-    #     # Find matching pantry item and reduce quantity
-    #     pass
-    
-    return jsonify({'success': True, 'message': f'Cooked {recipe["name"]}'})
+    return jsonify({'error': 'Not implemented in this build'}), 501
 
 @app.route('/api/recipes/search', methods=['GET'])
 def search_recipes():
-    """
-    Search for recipes online
-    TODO: Integrate with Gumloop to search recipe APIs
-    """
-    query = request.args.get('q', '')
-    
-    # TODO: Use Gumloop to search recipe APIs (Spoonacular, etc.)
-    # Example:
-    # results = gumloop.search_recipes(query)
-    
-    # Placeholder response
-    results = [
-        {
-            'id': 1,
-            'name': f'{query} Recipe 1',
-            'source': 'AllRecipes',
-            'sourceUrl': 'https://allrecipes.com',
-            'prepTime': 30,
-            'servings': 4,
-            'ingredients': [
-                {'name': 'Ingredient 1', 'quantity': 1, 'unit': 'cup'},
-                {'name': 'Ingredient 2', 'quantity': 2, 'unit': 'tbsp'},
-            ]
-        }
-    ]
-    
-    return jsonify(results)
+    return jsonify({'error': 'Not implemented in this build'}), 501
 
 @app.route('/api/recipes/suggestions', methods=['GET'])
 def get_suggestions():
-    """
-    Get recipe suggestions based on pantry contents
-    TODO: Integrate with Gumloop for AI suggestions
-    """
-    # TODO: Use Gumloop to analyze pantry and suggest recipes
-    # Example:
-    # suggestions = gumloop.get_recipe_suggestions(pantry_items)
-    
-    return jsonify([])
+    return jsonify({'error': 'Not implemented in this build'}), 501
 
 @app.route('/api/recipes/<int:recipe_id>/shopping-list', methods=['GET'])
 def get_shopping_list(recipe_id):
-    """Get shopping list for a recipe (missing ingredients)"""
-    recipe = next((r for r in recipes if r['id'] == recipe_id), None)
-    if not recipe:
-        return jsonify({'error': 'Recipe not found'}), 404
-    
-    # Calculate missing ingredients
-    missing = []
-    for ingredient in recipe.get('ingredients', []):
-        # Check if ingredient is in pantry
-        in_pantry = any(
-            item['name'].lower() in ingredient['name'].lower() or
-            ingredient['name'].lower() in item['name'].lower()
-            for item in pantry_items
-        )
-        if not in_pantry:
-            missing.append(ingredient)
-    
-    return jsonify(missing)
+    return jsonify({'error': 'Not implemented in this build'}), 501
 
 # ============================================================
 # INGREDIENT SUBSTITUTES
@@ -184,24 +82,7 @@ def get_shopping_list(recipe_id):
 
 @app.route('/api/ingredients/<ingredient>/substitutes', methods=['GET'])
 def get_substitutes(ingredient):
-    """
-    Get ingredient substitutes
-    TODO: Integrate with Gumloop for AI-powered substitutes
-    """
-    # TODO: Use Gumloop to get intelligent substitutes
-    # Example:
-    # substitutes = gumloop.get_substitutes(ingredient)
-    
-    # Placeholder substitutes
-    common_substitutes = {
-        'milk': ['Almond Milk', 'Oat Milk', 'Soy Milk', 'Coconut Milk'],
-        'butter': ['Olive Oil', 'Coconut Oil', 'Margarine', 'Greek Yogurt'],
-        'eggs': ['Flax Eggs', 'Chia Eggs', 'Applesauce', 'Mashed Banana'],
-        'chicken': ['Turkey', 'Tofu', 'Tempeh', 'Seitan'],
-    }
-    
-    subs = common_substitutes.get(ingredient.lower(), [])
-    return jsonify(subs)
+    return jsonify({'error': 'Not implemented in this build'}), 501
 
 # ============================================================
 # HEALTH STATS
@@ -209,17 +90,7 @@ def get_substitutes(ingredient):
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
-    """Get health statistics for pantry"""
-    # Calculate category distribution
-    categories = {}
-    for item in pantry_items:
-        cat = item.get('category', 'other')
-        categories[cat] = categories.get(cat, 0) + 1
-    
-    return jsonify({
-        'total_items': len(pantry_items),
-        'categories': categories,
-    })
+    return jsonify({'error': 'Not implemented in this build'}), 501
 
 # ============================================================
 # CLAUDE AI CHAT
@@ -228,25 +99,14 @@ def get_stats():
 @app.route('/api/chat', methods=['POST'])
 def chat():
     """
-    Chat with Claude AI for pantry assistance
-    Requires ANTHROPIC_API_KEY in environment variables
+    Chat with AI for pantry assistance.
+    Supports either OpenAI (ChatGPT) via OPENAI_API_KEY or Anthropic (Claude) via ANTHROPIC_API_KEY.
     """
-    import anthropic
-    
     data = request.json
     messages = data.get('messages', [])
-    
-    # Get API key from environment
-    api_key = os.environ.get('ANTHROPIC_API_KEY')
-    
-    if not api_key:
-        return jsonify({'error': 'ANTHROPIC_API_KEY not configured'}), 500
-    
-    try:
-        client = anthropic.Anthropic(api_key=api_key)
-        
-        # System prompt for pantry assistant context
-        system_prompt = """You are a helpful pantry and cooking assistant called PantryPal. 
+
+    # System prompt for pantry assistant context
+    system_prompt = """You are a helpful pantry and cooking assistant called PantryPal. 
 You help users with:
 - Recipe suggestions based on available ingredients
 - Ingredient substitutions for dietary restrictions or missing items
@@ -257,27 +117,56 @@ You help users with:
 
 Keep responses concise, friendly, and practical. Focus on being helpful for home cooks managing their kitchen pantry."""
 
-        # Format messages for Claude API
-        claude_messages = []
-        for msg in messages:
-            if msg['role'] in ['user', 'assistant']:
-                claude_messages.append({
-                    'role': msg['role'],
-                    'content': msg['content']
-                })
-        
-        response = client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=1024,
-            system=system_prompt,
-            messages=claude_messages
-        )
-        
-        assistant_message = response.content[0].text
-        return jsonify({'message': assistant_message})
-        
+    # Prefer OpenAI if configured, otherwise fall back to Anthropic
+    openai_key = os.environ.get('OPENAI_API_KEY')
+    anthropic_key = os.environ.get('ANTHROPIC_API_KEY')
+
+    try:
+        if openai_key:
+            # Use OpenAI (ChatGPT)
+            from openai import OpenAI
+            client = OpenAI(api_key=openai_key)
+
+            # Convert messages, prepend system prompt
+            openai_messages = [{'role': 'system', 'content': system_prompt}]
+            for msg in messages:
+                if msg.get('role') in ['user', 'assistant']:
+                    openai_messages.append({'role': msg['role'], 'content': msg['content']})
+
+            completion = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=openai_messages,
+                temperature=0.7,
+                max_tokens=512
+            )
+            assistant_message = completion.choices[0].message.content
+            return jsonify({'message': assistant_message})
+
+        elif anthropic_key:
+            # Use Anthropic (Claude)
+            import anthropic
+            client = anthropic.Anthropic(api_key=anthropic_key)
+
+            claude_messages = []
+            for msg in messages:
+                if msg.get('role') in ['user', 'assistant']:
+                    claude_messages.append({'role': msg['role'], 'content': msg['content']})
+
+            response = client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=1024,
+                system=system_prompt,
+                messages=claude_messages
+            )
+
+            assistant_message = response.content[0].text
+            return jsonify({'message': assistant_message})
+
+        else:
+            return jsonify({'error': 'No AI key configured. Set OPENAI_API_KEY or ANTHROPIC_API_KEY.'}), 500
+
     except Exception as e:
-        print(f"Claude API error: {e}")
+        print(f"AI chat error: {e}")
         return jsonify({'error': str(e)}), 500
 
 # ============================================================
