@@ -117,6 +117,22 @@ export function Recipes() {
     return mockSubstitutes[ingredientName] || []
   }
 
+  // Get substitutes that are available in the user's pantry
+  const getPantrySubstitutes = (ingredientName) => {
+    const allSubstitutes = mockSubstitutes[ingredientName] || []
+    const pantryNames = mockPantryItems.map(item => item.name.toLowerCase())
+    
+    return allSubstitutes
+      .filter(sub => pantryNames.includes(sub.toLowerCase()))
+      .map(sub => {
+        const pantryItem = mockPantryItems.find(item => item.name.toLowerCase() === sub.toLowerCase())
+        return {
+          name: sub,
+          pantryItem: pantryItem
+        }
+      })
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -352,7 +368,7 @@ export function Recipes() {
                       const inPantry = mockPantryItems.find(
                         item => item.name.toLowerCase().includes(ingredient.name.toLowerCase())
                       )
-                      const substitutes = getSubstitutes(ingredient.name)
+                      const pantrySubstitutes = getPantrySubstitutes(ingredient.name)
                       
                       return (
                         <li key={index} className="flex items-center justify-between">
@@ -366,13 +382,14 @@ export function Recipes() {
                               {ingredient.quantity} {ingredient.unit} {ingredient.name}
                             </span>
                           </div>
-                          {!inPantry && substitutes.length > 0 && (
+                          {!inPantry && pantrySubstitutes.length > 0 && (
                             <Button
                               variant="link"
                               size="sm"
                               onClick={() => setShowSubstitutes(ingredient.name)}
+                              className="text-green-600"
                             >
-                              View substitutes
+                              Use pantry substitute
                             </Button>
                           )}
                         </li>
@@ -428,17 +445,29 @@ export function Recipes() {
           <DialogHeader>
             <DialogTitle>Substitutes for {showSubstitutes}</DialogTitle>
             <DialogDescription>
-              You can use these alternatives instead
+              These alternatives are available in your pantry
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <ul className="space-y-2">
-              {showSubstitutes && getSubstitutes(showSubstitutes).map((sub, i) => (
-                <li key={i} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted">
-                  <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs">
-                    {i + 1}
-                  </span>
-                  {sub}
+              {showSubstitutes && getPantrySubstitutes(showSubstitutes).map((sub, i) => (
+                <li key={i} className="flex items-center justify-between p-3 rounded-lg bg-green-50 border border-green-200">
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-xs">
+                      <Check className="h-3 w-3" />
+                    </span>
+                    <div>
+                      <p className="font-medium">{sub.name}</p>
+                      {sub.pantryItem && (
+                        <p className="text-sm text-muted-foreground">
+                          You have: {sub.pantryItem.quantity} {sub.pantryItem.unit}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Badge variant="success" className="bg-green-100 text-green-700 border-green-300">
+                    In Pantry
+                  </Badge>
                 </li>
               ))}
             </ul>

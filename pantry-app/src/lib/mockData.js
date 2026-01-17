@@ -56,13 +56,16 @@ export const mockRecipes = [
 ];
 
 export const mockSubstitutes = {
-  'Chicken Breast': ['Turkey Breast', 'Tofu', 'Tempeh', 'Seitan'],
+  'Chicken Breast': ['Turkey Breast', 'Tofu', 'Tempeh', 'Eggs'],
   'Milk': ['Almond Milk', 'Oat Milk', 'Soy Milk', 'Coconut Milk'],
   'Eggs': ['Flax Eggs', 'Chia Eggs', 'Applesauce', 'Mashed Banana'],
   'Butter': ['Olive Oil', 'Coconut Oil', 'Avocado', 'Greek Yogurt'],
-  'Rice': ['Quinoa', 'Cauliflower Rice', 'Couscous', 'Bulgur'],
-  'Pasta': ['Zucchini Noodles', 'Rice Noodles', 'Spaghetti Squash'],
-  'Cheese': ['Nutritional Yeast', 'Vegan Cheese', 'Cottage Cheese'],
+  'Rice': ['Quinoa', 'Cauliflower Rice', 'Pasta', 'Bulgur'],
+  'Pasta': ['Zucchini Noodles', 'Rice', 'Spaghetti Squash'],
+  'Cheese': ['Nutritional Yeast', 'Vegan Cheese', 'Eggs'],
+  'Soy Sauce': ['Olive Oil', 'Salt'],
+  'Tomatoes': ['Spinach', 'Broccoli'],
+  'Spinach': ['Broccoli', 'Tomatoes'],
 };
 
 export const categoryColors = {

@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Upload, Camera, FileImage, Check, X, Loader2 } from 'lucide-react'
+import { Upload, Camera, FileImage, Check, X, Loader2, Trash2, RotateCcw } from 'lucide-react'
 import { categoryLabels } from '@/lib/mockData'
 
 export function UploadReceipt() {
@@ -170,11 +170,28 @@ export function UploadReceipt() {
                       </div>
                     </div>
                   )}
+                  {/* Remove image button */}
+                  {!isProcessing && (
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2"
+                      onClick={handleReset}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
-                <Button variant="outline" onClick={handleReset} className="w-full">
-                  <Camera className="mr-2 h-4 w-4" />
-                  Upload Different Image
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={handleReset} className="flex-1">
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Start Over
+                  </Button>
+                  <Button variant="outline" onClick={() => document.getElementById('file-input').click()} className="flex-1">
+                    <Camera className="mr-2 h-4 w-4" />
+                    Upload Different Image
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
@@ -193,8 +210,8 @@ export function UploadReceipt() {
           <CardContent>
             {extractedItems.length > 0 ? (
               <div className="space-y-4">
-                {/* Select All / None */}
-                <div className="flex gap-2">
+                {/* Select All / None / Clear */}
+                <div className="flex gap-2 flex-wrap">
                   <Button
                     variant="outline"
                     size="sm"
@@ -208,6 +225,15 @@ export function UploadReceipt() {
                     onClick={() => setSelectedItems(new Set())}
                   >
                     Select None
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleReset}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="mr-1 h-4 w-4" />
+                    Clear All
                   </Button>
                 </div>
 
