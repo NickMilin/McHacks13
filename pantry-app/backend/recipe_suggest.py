@@ -9,63 +9,10 @@ from PIL import Image
 load_dotenv(override=True)
 gumloop_api_key = os.getenv('GUMLOOP')
 
-# Don't crash on import - defer error to runtime when the key is actually needed
-def _check_api_key():
-    if not gumloop_api_key:
-        raise ValueError("GUMLOOP API key not found in environment variables. Add GUMLOOP=your_key to .env file.")
+if not gumloop_api_key:
+    raise ValueError("GUMLOOP API key not found in environment variables")
 
-def upload_image_to_gumloop(image_path, user_id):
-    _check_api_key()
-    # Check if file exists
-    if not os.path.exists(image_path):
-        raise FileNotFoundError(f"Image file not found: {image_path}")
-    
-    try:
-        with open(image_path, 'rb') as file:
-            file_content = base64.b64encode(file.read()).decode('utf-8')
-    except Exception as e:
-        raise Exception(f"Error reading image file: {str(e)}")
-        
-    # Get the filename
-    file_name = os.path.basename(image_path)
-    
-    # Prepare the API request
-    url = "https://api.gumloop.com/api/v1/upload_file"
-    
-    payload = {
-        "file_name": file_name,
-        "file_content": file_content,
-        "user_id": user_id
-    }
-    
-    headers = {
-        "Authorization": f"Bearer {gumloop_api_key}",
-        "Content-Type": "application/json"
-    }
-    
-    # Make the request
-    try:
-        response = requests.post(url, json=payload, headers=headers, timeout=30)
-        response.raise_for_status()
-    except requests.exceptions.Timeout:
-        raise Exception("Upload request timed out")
-    except requests.exceptions.RequestException as e:
-        raise Exception(f"Error uploading file to Gumloop: {str(e)}")
-    
-    try:
-        response_data = response.json()
-        file_name = response_data.get("file_name")
-        if not file_name:
-            raise ValueError("No file_name in upload response")
-        return file_name
-    except ValueError as e:
-        raise Exception(f"Invalid JSON response from upload: {str(e)}") 
-
-
-
-
-
-def start_pipeline(file_name, user_id, saved_item_id):    
+def start_pipeline(pantry_csv, user_id, saved_item_id):    
     # Prepare the API request for starting a pipeline with file
     url = "https://api.gumloop.com/api/v1/start_pipeline"
     
@@ -76,8 +23,8 @@ def start_pipeline(file_name, user_id, saved_item_id):
         "saved_item_id": saved_item_id,
         "pipeline_inputs": [
             {
-                "input_name": "file_name",
-                "value": f"{file_name}"
+                "input_name": "pantry",
+                "value": f"{pantry_csv}"
             }
         ]
     }
@@ -88,7 +35,7 @@ def start_pipeline(file_name, user_id, saved_item_id):
     }
     
     # Make the request
-    print(f"Starting pipeline with file: {file_name}")
+    print(f"Starting pipeline to suggest recipes")
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=30)
         response.raise_for_status()
@@ -142,12 +89,11 @@ def get_pipeline_data(response, user_id, max_wait_time=300):
     return data
 
 
-def run_image_pipeline(image_path, user_id, saved_item_id):
+def run_pipeline(pantry_csv, user_id, saved_item_id):
     # Upload image and start pipeline
-    file_name = upload_image_to_gumloop(image_path, user_id)
-    pipeline_response = start_pipeline(file_name, user_id, saved_item_id)
+    pipeline_response = start_pipeline(pantry_csv, user_id, saved_item_id)
     result = get_pipeline_data(pipeline_response, user_id)
-    return result.get("outputs").get("receipt_text")
+    return result.get("outputs").get("recipe_json")
     
 
 
@@ -156,16 +102,25 @@ if __name__ == "__main__":
         print("API Key loaded:", "Yes" if gumloop_api_key else "No")
         
         # Configuration
-        IMAGE_PATH = "receipt.jpg"  
         USER_ID = "ACFRzCqhciYjfQxd77vMlTxTMD22"
-        SAVED_ITEM_ID = "vezQxjRcmZY43i7KWchyKw"
+        SAVED_ITEM_ID = "6rJM8cctyz3xjYTooAMjpe"
         
-        # Upload file and start the pipeline
-        print("Uploading file and starting pipeline...")
-        file_name = upload_image_to_gumloop(IMAGE_PATH, USER_ID)
-        print(f"File uploaded successfully: {file_name}")
-        
-        pipeline_call = start_pipeline(file_name, USER_ID, SAVED_ITEM_ID)
+        pantry_csv = '''
+        food_name,quantity,unit,food_category
+Jasmine Rice,1,null,Grains
+Jasmine Rice,1,null,Grains
+Chicken Breast,1,null,Proteins
+NY Strip Steak,1,null,Proteins
+Onions,1.24,null,Vegetables
+Potatoes,1.80,null,Vegetables
+Garlic,0.27,null,Vegetables
+Bananas,2.52,null,Fruits
+Broccoli Crowns,1.29,null,Vegetables
+Green Onions,1,null,Vegetables
+Sesame Seeds,1,null,Proteins
+Eggs,1,null,Proteins
+        '''
+        pipeline_call = start_pipeline(pantry_csv, USER_ID, SAVED_ITEM_ID)
         print(f"Pipeline started with run_id: {pipeline_call.get('run_id')}")
         
         result = get_pipeline_data(pipeline_call, USER_ID)
@@ -173,7 +128,9 @@ if __name__ == "__main__":
         output = result.get("outputs")
         if output:
             print("\nPipeline output:")
-            print(output.get("receipt_text"))
+            print(output.get("output1"))
+            print(output.get("output2"))
+            print(output.get("output3"))
         else:
             print("\nNo output found in result")
             

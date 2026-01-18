@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
-import { ThemeProvider, ThemeBackground } from '@/components/ui/ThemeBackground'
+import { PantryProvider } from '@/contexts/PantryContext'
+import { ThemeProvider, ThemeBackground, ThemeToggle } from '@/components/ui/ThemeBackground'
 import { Layout } from '@/components/layout/Layout'
 import { Login } from '@/pages/Login'
 import { Dashboard } from '@/pages/Dashboard'
@@ -82,14 +83,16 @@ function AppRoutes() {
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <ThemeProvider>
-          <ThemeBackground />
-          <div className="relative z-10">
-            <AppRoutes />
-          </div>
-        </ThemeProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <PantryProvider>
+            <ThemeBackground />
+            <div className="relative z-10">
+              <AppRoutes />
+            </div>
+          </PantryProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   )
 }
