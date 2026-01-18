@@ -1,0 +1,20 @@
+food_name,quantity,unit,food_category
+Barbecue Chicken,1,null,Proteins
+Ranch Queso Fresco,1,null,Dairy
+Smoked Ham,1,null,Proteins
+Spreads,1,null,Dairy
+Carne Picada,1,null,Proteins
+Milanesa,1,null,Proteins
+Boneless Pork Chops,1,null,Proteins
+Premium Crackers,1,null,Grains
+Boneless Chicken Breast,1,null,Proteins
+Chocolate Cupcakes,1,null,Grains
+Strawberries,1,null,Fruits
+Potatoes,1,null,Vegetables
+Mandarins,1,null,Fruits
+Strawberries,1,null,Fruits
+Lime,5,null,Fruits
+Peaches,1.96,lb,Fruits
+Nectarines,1.60,lb,Fruits
+Avocado,3,null,Fruits
+Bread,1,null,Grains
