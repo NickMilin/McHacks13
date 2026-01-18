@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { ShoppingCart, Plus, Trash2, Check, Download, Share2, X } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { pantryFirebase } from '@/lib/pantryFirebase'
+import { shoppingListFirebase } from '@/lib/shoppingListFirebase'
 import { mockRecipes, categoryLabels } from '@/lib/mockData'
 
 export function ShoppingList() {
@@ -13,11 +14,14 @@ export function ShoppingList() {
   const [pantryItems, setPantryItems] = useState([])
   const [pantryLoading, setPantryLoading] = useState(true)
   const [pantryError, setPantryError] = useState(null)
-  const [customItems, setCustomItems] = useState([])
+  const [items, setItems] = useState([])
   const [newItemName, setNewItemName] = useState('')
+  const [newItemQuantity, setNewItemQuantity] = useState('')
+  const [newItemUnit, setNewItemUnit] = useState('')
   const [checkedItems, setCheckedItems] = useState(new Set())
   const [selectedRecipes, setSelectedRecipes] = useState(new Set([1, 2])) // Default selected recipes
-  const [removedItems, setRemovedItems] = useState(new Set()) // Track removed recipe items
+  const [editingItem, setEditingItem] = useState(null) // Track which item is being edited
+  const [loading, setLoading] = useState(true)
 
   // Load pantry items from Firebase
   useEffect(() => {
@@ -40,10 +44,54 @@ export function ShoppingList() {
     loadItems()
   }, [user])
 
-  // Calculate missing ingredients from selected recipes
-  const missingIngredients = useMemo(() => {
-    const missing = new Map()
-    
+  // Load shopping list from Firebase
+  useEffect(() => {
+    const loadShoppingList = async () => {
+      if (!user) {
+        setLoading(false)
+        return
+      }
+      try {
+        const data = await shoppingListFirebase.getShoppingList(user.uid)
+        setItems(data.items || [])
+        setCheckedItems(new Set(data.checkedItems || []))
+        setSelectedRecipes(new Set(data.selectedRecipes || [1, 2]))
+      } catch (err) {
+        console.error('Error loading shopping list:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadShoppingList()
+  }, [user])
+
+  // Save shopping list to Firebase whenever it changes
+  useEffect(() => {
+    const saveShoppingList = async () => {
+      if (!user || loading) return
+      
+      try {
+        await shoppingListFirebase.updateShoppingList(user.uid, {
+          items,
+          checkedItems: Array.from(checkedItems),
+          selectedRecipes: Array.from(selectedRecipes)
+        })
+      } catch (err) {
+        console.error('Error saving shopping list:', err)
+      }
+    }
+    saveShoppingList()
+  }, [user, items, checkedItems, selectedRecipes, loading])
+
+  // Sync items with selected recipes
+  useEffect(() => {
+    if (loading || pantryLoading) return
+
+    const newItems = [...items]
+    const itemMap = new Map(items.map(item => [item.id, item]))
+
+    // Calculate missing ingredients from selected recipes
+    const recipeIngredients = new Map()
     mockRecipes
       .filter(recipe => selectedRecipes.has(recipe.id))
       .forEach(recipe => {
@@ -56,30 +104,52 @@ export function ShoppingList() {
           if (!inPantry) {
             const key = ingredient.name.toLowerCase()
             const qty = parseFloat(ingredient.quantity) || 1
-            if (missing.has(key)) {
-              const existing = missing.get(key)
+            if (recipeIngredients.has(key)) {
+              const existing = recipeIngredients.get(key)
               existing.quantity += qty
               existing.recipes.push(recipe.name)
             } else {
-              missing.set(key, {
+              recipeIngredients.set(key, {
                 id: ingredient.name,
                 name: ingredient.name,
                 quantity: qty,
                 unit: ingredient.unit,
                 recipes: [recipe.name],
-                category: 'other'
+                category: 'other',
+                isCustom: false
               })
             }
           }
         })
       })
-    
-    // Filter out removed items
-    return Array.from(missing.values()).filter(item => !removedItems.has(item.id))
-  }, [selectedRecipes, removedItems, pantryItems])
+
+    // Add new recipe items
+    recipeIngredients.forEach((ingredient, key) => {
+      if (!itemMap.has(ingredient.id)) {
+        newItems.push(ingredient)
+      } else {
+        // Update recipes list for existing item
+        const existingIndex = newItems.findIndex(item => item.id === ingredient.id)
+        if (existingIndex !== -1 && !newItems[existingIndex].isCustom) {
+          newItems[existingIndex] = {
+            ...newItems[existingIndex],
+            recipes: ingredient.recipes
+          }
+        }
+      }
+    })
+
+    // Remove items that are no longer in selected recipes (but keep custom items)
+    const filteredItems = newItems.filter(item => {
+      if (item.isCustom) return true
+      return recipeIngredients.has(item.id.toLowerCase())
+    })
+
+    setItems(filteredItems)
+  }, [selectedRecipes, pantryItems, loading, pantryLoading])
 
   // All shopping list items
-  const allItems = [...missingIngredients, ...customItems]
+  const allItems = items
 
   // Toggle recipe selection
   const toggleRecipe = (recipeId) => {
@@ -99,34 +169,55 @@ export function ShoppingList() {
     const item = {
       id: `custom-${Date.now()}`,
       name: newItemName.trim(),
-      quantity: 1,
-      unit: '',
+      quantity: parseFloat(newItemQuantity) || 1,
+      unit: newItemUnit.trim(),
       recipes: ['Custom'],
       category: 'other',
       isCustom: true
     }
     
-    setCustomItems([...customItems, item])
+    setItems([...items, item])
     setNewItemName('')
+    setNewItemQuantity('')
+    setNewItemUnit('')
   }
 
-  // Remove item (custom or recipe-based)
+  // Remove item
   const handleRemoveItem = (item) => {
-    if (item.isCustom) {
-      setCustomItems(customItems.filter(i => i.id !== item.id))
-    } else {
-      setRemovedItems(new Set([...removedItems, item.id]))
-    }
+    setItems(items.filter(i => i.id !== item.id))
     checkedItems.delete(item.id)
     setCheckedItems(new Set(checkedItems))
   }
 
+  // Update item quantity/unit
+  const handleUpdateItem = (itemId, quantity, unit) => {
+    if (editingItem !== itemId) return
+    
+    const itemIndex = items.findIndex(item => item.id === itemId)
+    if (itemIndex !== -1) {
+      const updatedItems = [...items]
+      updatedItems[itemIndex] = {
+        ...updatedItems[itemIndex],
+        quantity: parseFloat(quantity) || 1,
+        unit: unit
+      }
+      setItems(updatedItems)
+    }
+    setEditingItem(null)
+  }
+
   // Clear entire list
-  const clearAllItems = () => {
-    const allRecipeItemIds = missingIngredients.map(item => item.id)
-    setRemovedItems(new Set([...removedItems, ...allRecipeItemIds]))
-    setCustomItems([])
+  const clearAllItems = async () => {
+    setItems([])
     setCheckedItems(new Set())
+    
+    if (user) {
+      try {
+        await shoppingListFirebase.clearShoppingList(user.uid)
+      } catch (err) {
+        console.error('Error clearing shopping list:', err)
+      }
+    }
   }
 
   // Toggle item checked
@@ -142,17 +233,7 @@ export function ShoppingList() {
 
   // Clear all checked items
   const clearChecked = () => {
-    const checkedCustomItems = customItems.filter(item => checkedItems.has(item.id))
-    const checkedRecipeItems = missingIngredients.filter(item => checkedItems.has(item.id))
-    
-    // Remove checked custom items
-    setCustomItems(customItems.filter(item => !checkedItems.has(item.id)))
-    
-    // Add checked recipe items to removed set
-    const newRemoved = new Set(removedItems)
-    checkedRecipeItems.forEach(item => newRemoved.add(item.id))
-    setRemovedItems(newRemoved)
-    
+    setItems(items.filter(item => !checkedItems.has(item.id)))
     setCheckedItems(new Set())
   }
 
@@ -273,16 +354,34 @@ export function ShoppingList() {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Add Custom Item */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Add custom item..."
-                value={newItemName}
-                onChange={(e) => setNewItemName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAddCustomItem()}
-              />
-              <Button onClick={handleAddCustomItem}>
-                <Plus className="h-4 w-4" />
-              </Button>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Item name..."
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddCustomItem()}
+                  className="flex-1"
+                />
+                <Input
+                  type="number"
+                  placeholder="Qty"
+                  value={newItemQuantity}
+                  onChange={(e) => setNewItemQuantity(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddCustomItem()}
+                  className="w-20"
+                />
+                <Input
+                  placeholder="Unit"
+                  value={newItemUnit}
+                  onChange={(e) => setNewItemUnit(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddCustomItem()}
+                  className="w-24"
+                />
+                <Button onClick={handleAddCustomItem}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             {/* Shopping Items */}
@@ -306,18 +405,64 @@ export function ShoppingList() {
                       {checkedItems.has(item.id) && <Check className="h-3 w-3 text-white" />}
                     </button>
                     
-                    <div className="flex-1 min-w-0">
-                      <p className={`font-medium ${checkedItems.has(item.id) ? 'line-through' : ''}`}>
-                        {item.quantity} {item.unit} {item.name}
-                      </p>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {item.recipes.map((recipe, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
-                            {recipe}
-                          </Badge>
-                        ))}
+                    {editingItem === item.id ? (
+                      <div className="flex-1 flex items-center gap-2">
+                        <Input
+                          type="number"
+                          defaultValue={item.quantity}
+                          className="w-20"
+                          id={`qty-${item.id}`}
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const qty = document.getElementById(`qty-${item.id}`).value
+                              const unit = document.getElementById(`unit-${item.id}`).value
+                              handleUpdateItem(item.id, qty, unit)
+                            }
+                          }}
+                        />
+                        <Input
+                          defaultValue={item.unit}
+                          className="w-24"
+                          id={`unit-${item.id}`}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const qty = document.getElementById(`qty-${item.id}`).value
+                              const unit = document.getElementById(`unit-${item.id}`).value
+                              handleUpdateItem(item.id, qty, unit)
+                            }
+                          }}
+                        />
+                        <Input
+                          defaultValue={item.name}
+                          className="flex-1"
+                          disabled
+                        />
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            const qty = document.getElementById(`qty-${item.id}`).value
+                            const unit = document.getElementById(`unit-${item.id}`).value
+                            handleUpdateItem(item.id, qty, unit)
+                          }}
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="flex-1 min-w-0" onClick={() => setEditingItem(item.id)}>
+                        <p className={`font-medium cursor-pointer ${checkedItems.has(item.id) ? 'line-through' : ''}`}>
+                          {item.quantity} {item.unit} {item.name}
+                        </p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {item.recipes.map((recipe, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs">
+                              {recipe}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     
                     <Button
                       variant="ghost"
