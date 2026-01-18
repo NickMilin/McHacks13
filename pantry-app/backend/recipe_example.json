@@ -1,0 +1,91 @@
+{
+  "recipe_title": "BBQ Chicken Sandwich",
+  "description": "A BBQ chicken sandwich recipe featuring pan-seared chicken, bacon, onions, melty Colby Jack cheese and barbecue sauce. A fast and easy quick-fix dinner idea.",
+  "prep_time_minutes": 10,
+  "cook_time_minutes": 20,
+  "servings": 6,
+  "ingredients": [
+    {
+      "name": "boneless skinless chicken cutlets",
+      "quantity": "2",
+      "unit": "pounds",
+      "preparation_notes": "thinly sliced chicken breasts",
+      "group": "Main"
+    },
+    {
+      "name": "canola oil",
+      "quantity": "2",
+      "unit": "tablespoons",
+      "preparation_notes": "separated",
+      "group": "Main"
+    },
+    {
+      "name": "TAK House Seasoning",
+      "quantity": "1",
+      "unit": "tablespoon",
+      "preparation_notes": "or your favorite spice blend",
+      "group": "Main"
+    },
+    {
+      "name": "thick-cut bacon",
+      "quantity": "12",
+      "unit": "slices",
+      "preparation_notes": "halved",
+      "group": "Main"
+    },
+    {
+      "name": "red or yellow onion",
+      "quantity": "1",
+      "unit": "whole",
+      "preparation_notes": "halved and cut\u00a0into \u00bc\" slices",
+      "group": "Main"
+    },
+    {
+      "name": "hamburger or kaiser buns",
+      "quantity": "6",
+      "unit": "pieces",
+      "preparation_notes": "warmed",
+      "group": "Bread"
+    },
+    {
+      "name": "Colby Jack cheese",
+      "quantity": "\u00be",
+      "unit": "cup",
+      "preparation_notes": "freshly grated",
+      "group": "Cheese"
+    },
+    {
+      "name": "TAK's Blender Barbecue Sauce",
+      "quantity": "\u2153",
+      "unit": "cup",
+      "preparation_notes": "or your favorite store-bought barbecue sauce",
+      "group": "Sauce"
+    }
+  ],
+  "instructions": [
+    {
+      "step_number": 1,
+      "instruction_text": "On a large work surface, pat chicken dry with a paper towel. Drizzle with 1 tablespoon of canola oil, sprinkle with TAK Seasoning and rub in on all sides to adhere. Set aside until ready to use."
+    },
+    {
+      "step_number": 2,
+      "instruction_text": "Have ready a large plate lined with paper towels. In a large saute pan, fry bacon over medium-high heat for 5 minutes. Flip and fry for 3 minutes more, or until deeply browned and crisp. Transfer to plate and set aside to cool."
+    },
+    {
+      "step_number": 3,
+      "instruction_text": "Turn off the heat and spoon out the majority of the bacon grease, leaving behind only enough to coat the bottom of the pan. Wipe away any drippings from the pan, and return to medium-high heat."
+    },
+    {
+      "step_number": 4,
+      "instruction_text": "Add 1 tablespoon of canola oil to the pan. Add the cutlets and sear for 5 minutes. Do not jostle, and take care not to overcrowd the pan, cooking cutlets in batches if necessary. Turn over and cook for 3-4 minutes more, or until cooked through. Set aside to rest for 5-10 minutes."
+    },
+    {
+      "step_number": 5,
+      "instruction_text": "Reduce the heat to medium and add the onion to the pan. Saute for 5-7 minutes, stirring often. Set aside until ready to use."
+    },
+    {
+      "step_number": 6,
+      "instruction_text": "Slice chicken in \u00bd\" strips, cutting against the grain. Divide the chicken amongst the buns, add bacon, a healthy pinch of Colby Jack cheese, onions and top with a generous spoonful of barbecue sauce. Serve and enjoy."
+    }
+  ]
+}

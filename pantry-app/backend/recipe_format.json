@@ -1,0 +1,88 @@
+{
+  "name": "extract_recipe_data",
+  "description": "Extracts structured recipe information including ingredients and step-by-step instructions from text.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "recipe_title": {
+        "type": "string",
+        "description": "The name of the dish."
+      },
+      "description": {
+        "type": "string",
+        "description": "A brief summary or description of the dish."
+      },
+      "prep_time_minutes": {
+        "type": "integer",
+        "description": "Estimated preparation time in minutes, if mentioned."
+      },
+      "cook_time_minutes": {
+        "type": "integer",
+        "description": "Estimated cooking time in minutes, if mentioned."
+      },
+      "servings": {
+        "type": "integer",
+        "description": "The number of servings the recipe yields."
+      },
+      "ingredients": {
+        "type": "array",
+        "description": "A list of all ingredients required.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "The name of the ingredient (e.g., 'Flour', 'Chicken Breast')."
+            },
+            "quantity": {
+              "type": "string",
+              "description": "The amount required (e.g., '2', '1.5', '1/2'). Keep as string to handle fractions."
+            },
+            "unit": {
+              "type": "string",
+              "description": "The unit of measurement (e.g., 'cups', 'grams', 'tbsp', 'pinch')."
+            },
+            "preparation_notes": {
+              "type": "string",
+              "description": "Specific state of the ingredient (e.g., 'finely chopped', 'room temperature', 'sifted')."
+            },
+            "group": {
+              "type": "string",
+              "description": "The section of the recipe this ingredient belongs to (e.g., 'Sauce', 'Filling', 'Garnish'). Use 'Main' if not specified."
+            }
+          },
+          "required": [
+            "name",
+            "quantity"
+          ]
+        }
+      },
+      "instructions": {
+        "type": "array",
+        "description": "The step-by-step guide to preparing the recipe.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "step_number": {
+              "type": "integer",
+              "description": "The sequential order of the step."
+            },
+            "instruction_text": {
+              "type": "string",
+              "description": "The detailed text for this specific step."
+            }
+          },
+          "required": [
+            "step_number",
+            "instruction_text"
+          ]
+        }
+      }
+    },
+    "required": [
+      "recipe_title",
+      "ingredients",
+      "instructions"
+    ]
+  }
+}
