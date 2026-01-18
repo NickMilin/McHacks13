@@ -142,7 +142,7 @@ def get_pipeline_data(response, user_id, max_wait_time=300):
     return data
 
 
-def run_pipeline(image_path, user_id, saved_item_id):
+def run_image_pipeline(image_path, user_id, saved_item_id):
     # Upload image and start pipeline
     file_name = upload_image_to_gumloop(image_path, user_id)
     pipeline_response = start_pipeline(file_name, user_id, saved_item_id)
@@ -156,7 +156,7 @@ if __name__ == "__main__":
         print("API Key loaded:", "Yes" if gumloop_api_key else "No")
         
         # Configuration
-        IMAGE_PATH = "receipt2.jpg"  
+        IMAGE_PATH = "receipt.jpg"  
         USER_ID = "ACFRzCqhciYjfQxd77vMlTxTMD22"
         SAVED_ITEM_ID = "vezQxjRcmZY43i7KWchyKw"
         

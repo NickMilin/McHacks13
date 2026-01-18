@@ -89,7 +89,7 @@ def get_pipeline_data(response, user_id, max_wait_time=300):
     return data
 
 
-def run_pipeline(recipe_link, user_id, saved_item_id):
+def run_image_pipeline(recipe_link, user_id, saved_item_id):
     # Upload image and start pipeline
     pipeline_response = start_pipeline(recipe_link, user_id, saved_item_id)
     result = get_pipeline_data(pipeline_response, user_id)
@@ -104,10 +104,10 @@ if __name__ == "__main__":
         # Configuration
         USER_ID = "ACFRzCqhciYjfQxd77vMlTxTMD22"
         SAVED_ITEM_ID = "hqBPoCuJVrK2FTJ4ejFUqf"
-        recipe_link = "https://easychickenrecipes.com/bbq-chicken-sandwiches-stovetop/#recipe"
+        RECIPE_LINK = "https://www.theanthonykitchen.com/bbq-chicken-sandwich-recipe/"  # Example recipe link
         
         
-        pipeline_call = start_pipeline(recipe_link, USER_ID, SAVED_ITEM_ID)
+        pipeline_call = start_pipeline(RECIPE_LINK, USER_ID, SAVED_ITEM_ID)
         print(f"Pipeline started with run_id: {pipeline_call.get('run_id')}")
         
         result = get_pipeline_data(pipeline_call, USER_ID)
