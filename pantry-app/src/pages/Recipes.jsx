@@ -10,14 +10,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, Trash2, Clock, Users, ChefHat, ShoppingCart, X, Check, ArrowLeft, ArrowRight, Flame, ExternalLink, BookOpen, PartyPopper } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { pantryFirebase } from '@/lib/pantryFirebase'
-import { mockRecipes, mockSubstitutes } from '@/lib/mockData'
+import { recipesFirebase } from '@/lib/recipesFirebase'
+import { mockSubstitutes } from '@/lib/mockData'
 
 export function Recipes() {
   const { user } = useAuth()
   const [pantryItems, setPantryItems] = useState([])
   const [pantryLoading, setPantryLoading] = useState(true)
   const [pantryError, setPantryError] = useState(null)
-  const [recipes, setRecipes] = useState(mockRecipes)
+  const [recipes, setRecipes] = useState([])
+  const [recipesLoading, setRecipesLoading] = useState(true)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [selectedRecipe, setSelectedRecipe] = useState(null)
   const [showShoppingList, setShowShoppingList] = useState(null)
@@ -53,6 +55,26 @@ export function Recipes() {
       }
     }
     loadItems()
+  }, [user])
+
+  // Load recipes from Firebase
+  useEffect(() => {
+    const loadRecipes = async () => {
+      if (!user) {
+        setRecipesLoading(false)
+        return
+      }
+      try {
+        const userRecipes = await recipesFirebase.getRecipes(user.uid)
+        setRecipes(userRecipes)
+      } catch (err) {
+        console.error('Error loading recipes:', err)
+        setNotification({ open: true, title: 'Error', message: 'Failed to load recipes' })
+      } finally {
+        setRecipesLoading(false)
+      }
+    }
+    loadRecipes()
   }, [user])
 
   // Check which ingredients are missing from pantry
@@ -103,39 +125,48 @@ export function Recipes() {
   }
 
   // Add new recipe
-  const handleAddRecipe = () => {
+  const handleAddRecipe = async () => {
     if (!newRecipe.name || newRecipe.ingredients.length === 0) return
     
     const recipe = {
-      id: Date.now(),
-      ...newRecipe,
+      name: newRecipe.name,
       prepTime: parseInt(newRecipe.prepTime) || 30,
       servings: parseInt(newRecipe.servings) || 4,
+      instructions: newRecipe.instructions,
       ingredients: newRecipe.ingredients.filter(i => i.name).map(i => ({
         ...i,
         quantity: parseFloat(i.quantity) || 1
       }))
     }
     
-    setRecipes([...recipes, recipe])
-    setNewRecipe({
-      name: '',
-      ingredients: [{ name: '', quantity: '', unit: '' }],
-      instructions: '',
-      prepTime: '',
-      servings: ''
-    })
-    setIsAddDialogOpen(false)
-    
-    // TODO: Call Flask API
-    // recipeApi.addRecipe(recipe)
+    try {
+      const recipeId = await recipesFirebase.addRecipe(user.uid, recipe)
+      setRecipes([...recipes, { id: recipeId, ...recipe }])
+      setNewRecipe({
+        name: '',
+        ingredients: [{ name: '', quantity: '', unit: '' }],
+        instructions: '',
+        prepTime: '',
+        servings: ''
+      })
+      setIsAddDialogOpen(false)
+      setNotification({ open: true, title: 'Recipe Added', message: 'Your recipe has been added successfully!' })
+    } catch (err) {
+      console.error('Error adding recipe:', err)
+      setNotification({ open: true, title: 'Error', message: 'Failed to add recipe' })
+    }
   }
 
   // Delete recipe
-  const handleDeleteRecipe = (id) => {
-    setRecipes(recipes.filter(r => r.id !== id))
-    // TODO: Call Flask API
-    // recipeApi.deleteRecipe(id)
+  const handleDeleteRecipe = async (id) => {
+    try {
+      await recipesFirebase.deleteRecipe(user.uid, id)
+      setRecipes(recipes.filter(r => r.id !== id))
+      setNotification({ open: true, title: 'Recipe Deleted', message: 'Recipe has been removed.' })
+    } catch (err) {
+      console.error('Error deleting recipe:', err)
+      setNotification({ open: true, title: 'Error', message: 'Failed to delete recipe' })
+    }
   }
 
   // Cook recipe (remove ingredients from pantry)

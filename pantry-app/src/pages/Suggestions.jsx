@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { pantryFirebase } from "@/lib/pantryFirebase";
+import { recipesFirebase } from "@/lib/recipesFirebase";
 import { recipeApi } from "@/lib/api";
 import { mockRecipes } from "@/lib/mockData";
 
@@ -219,6 +220,36 @@ export function Suggestions() {
       title: "Cooking Complete!",
       message: `You've finished cooking "${recipeName}"! Ingredients have been removed from your pantry.`,
     });
+  };
+
+  // Save recipe to user's collection
+  const handleSaveRecipe = async (recipe) => {
+    try {
+      const recipeData = {
+        name: recipe.name,
+        description: recipe.description || '',
+        source: recipe.source || 'AI Suggested',
+        sourceUrl: recipe.sourceUrl || '',
+        prepTime: recipe.prepTime || 0,
+        cookTime: recipe.cookTime || 0,
+        servings: recipe.servings || 4,
+        ingredients: recipe.ingredients || [],
+        instructions: recipe.instructions || []
+      }
+      await recipesFirebase.addRecipe(user.uid, recipeData)
+      setNotification({
+        open: true,
+        title: "Recipe Saved!",
+        message: `"${recipe.name}" has been added to your recipe library.`,
+      })
+    } catch (err) {
+      console.error('Error saving recipe:', err)
+      setNotification({
+        open: true,
+        title: "Save Failed",
+        message: 'Failed to save recipe to your library.',
+      })
+    }
   };
 
   // Add missing ingredients to shopping list
@@ -516,6 +547,15 @@ export function Suggestions() {
                     View Recipe
                   </Button>
                   <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleSaveRecipe(recipe)}
+                  >
+                    <BookOpen className="mr-1 h-4 w-4" />
+                    Save
+                  </Button>
+                  <Button
                     size="sm"
                     className="flex-1"
                     onClick={() => handleCookRecipe(recipe)}
@@ -682,6 +722,16 @@ export function Suggestions() {
                   onClick={() => setSelectedRecipe(null)}
                 >
                   Close
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    handleSaveRecipe(selectedRecipe)
+                    setSelectedRecipe(null)
+                  }}
+                >
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  Save to My Recipes
                 </Button>
                 <Button
                   onClick={() => handleCookRecipe(selectedRecipe)}
