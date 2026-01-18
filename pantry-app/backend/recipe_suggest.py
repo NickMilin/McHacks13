@@ -91,9 +91,10 @@ def get_pipeline_data(response, user_id, max_wait_time=300):
 
 def run_pipeline(pantry_csv, user_id, saved_item_id):
     # Upload image and start pipeline
-    pipeline_response = start_pipeline(pantry_csv, user_id, saved_item_id)
+    GUMLOOP_SAVED_ITEM_ID = "6rJM8cctyz3xjYTooAMjpe"
+    pipeline_response = start_pipeline(pantry_csv, user_id, GUMLOOP_SAVED_ITEM_ID)
     result = get_pipeline_data(pipeline_response, user_id)
-    return result.get("outputs").get("recipe_json")
+    return result.get("outputs")
     
 
 

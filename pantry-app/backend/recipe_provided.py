@@ -9,10 +9,13 @@ from PIL import Image
 load_dotenv(override=True)
 gumloop_api_key = os.getenv('GUMLOOP')
 
-if not gumloop_api_key:
-    raise ValueError("GUMLOOP API key not found in environment variables")
+# Don't crash on import - defer error to runtime when the key is actually needed
+def _check_api_key():
+    if not gumloop_api_key:
+        raise ValueError("GUMLOOP API key not found in environment variables. Add GUMLOOP=your_key to .env file.")
 
-def start_pipeline(recipe_link, user_id, saved_item_id):    
+def start_pipeline(recipe_link, user_id, saved_item_id):
+    _check_api_key()
     # Prepare the API request for starting a pipeline with file
     url = "https://api.gumloop.com/api/v1/start_pipeline"
     
@@ -89,9 +92,10 @@ def get_pipeline_data(response, user_id, max_wait_time=300):
     return data
 
 
-def run_pipeline(recipe_link, user_id, saved_item_id):
+def run_pipeline(recipe_link, user_id):
     # Upload image and start pipeline
-    pipeline_response = start_pipeline(recipe_link, user_id, saved_item_id)
+    GUMLOOP_SAVED_ITEM_ID = "hqBPoCuJVrK2FTJ4ejFUqf"
+    pipeline_response = start_pipeline(recipe_link, user_id, GUMLOOP_SAVED_ITEM_ID)
     result = get_pipeline_data(pipeline_response, user_id)
     return result.get("outputs").get("recipe_json")
     

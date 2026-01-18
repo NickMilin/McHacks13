@@ -75,6 +75,12 @@ export const recipeApi = {
     method: 'POST',
   }),
   
+  // Get recipe from URL (website or YouTube)
+  getRecipeFromUrl: (url) => apiCall('/recipes/from-url', {
+    method: 'POST',
+    body: JSON.stringify({ url }),
+  }),
+  
   // Search recipes online by dish name
   searchOnline: (query) => apiCall(`/recipes/search?q=${encodeURIComponent(query)}`),
   

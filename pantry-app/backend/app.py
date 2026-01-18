@@ -12,9 +12,11 @@ from flask_cors import CORS
 import os
 import csv
 import io
+import json
 import tempfile
 from dotenv import load_dotenv
 from receipt_upload import run_pipeline
+from recipe_provided import run_pipeline as run_recipe_pipeline
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
@@ -22,7 +24,6 @@ load_dotenv()  # Load environment variables from .env if present
 
 # Gumloop configuration
 GUMLOOP_USER_ID = os.getenv('GUMLOOP_USER_ID', 'ACFRzCqhciYjfQxd77vMlTxTMD22')
-GUMLOOP_SAVED_ITEM_ID = os.getenv('GUMLOOP_SAVED_ITEM_ID', 'vezQxjRcmZY43i7KWchyKw')
 
 # Category mapping for frontend compatibility
 CATEGORY_MAP = {
@@ -74,13 +75,13 @@ def upload_receipt():
     # Save uploaded file temporarily
     try:
         # Create a temp file with the original extension
-        ext = os.path.splitext(file.filename)[1] or '.jpg'
+        ext = os.path.splitext(file.filename or '.jpg')[1] or '.jpg'
         with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
             file.save(tmp.name)
             temp_path = tmp.name
         
         # Process through Gumloop pipeline
-        csv_text = run_pipeline(temp_path, GUMLOOP_USER_ID, GUMLOOP_SAVED_ITEM_ID)
+        csv_text = run_pipeline(temp_path, GUMLOOP_USER_ID)
         
         # Clean up temp file
         os.unlink(temp_path)
@@ -154,6 +155,51 @@ def cook_recipe(recipe_id):
 @app.route('/api/recipes/search', methods=['GET'])
 def search_recipes():
     return jsonify({'error': 'Not implemented in this build'}), 501
+
+@app.route('/api/recipes/from-url', methods=['POST'])
+def get_recipe_from_url():
+    """
+    Process a recipe URL (website or YouTube) through Gumloop pipeline.
+    Returns extracted recipe as JSON in recipe_format structure.
+    """
+    data = request.get_json()
+    if not data or 'url' not in data:
+        return jsonify({'error': 'No URL provided'}), 400
+    
+    recipe_url = data['url'].strip()
+    if not recipe_url:
+        return jsonify({'error': 'Empty URL provided'}), 400
+    
+    try:
+        # Process through Gumloop recipe pipeline
+        recipe_json_str = run_recipe_pipeline(recipe_url, GUMLOOP_USER_ID)
+        
+        if not recipe_json_str:
+            return jsonify({'error': 'No recipe data returned from pipeline'}), 500
+        
+        # Parse the JSON response
+        try:
+            recipe_data = json.loads(recipe_json_str)
+        except json.JSONDecodeError:
+            # If it's already a dict, use it directly
+            if isinstance(recipe_json_str, dict):
+                recipe_data = recipe_json_str
+            else:
+                return jsonify({'error': 'Invalid recipe data format'}), 500
+        
+        # Add source URL to the recipe
+        recipe_data['sourceUrl'] = recipe_url
+        recipe_data['source'] = 'Imported Recipe'
+        
+        return jsonify({
+            'success': True,
+            'recipe': recipe_data
+        })
+        
+    except TimeoutError as e:
+        return jsonify({'error': f'Processing timeout: {str(e)}'}), 504
+    except Exception as e:
+        return jsonify({'error': f'Processing failed: {str(e)}'}), 500
 
 @app.route('/api/recipes/suggestions', methods=['GET'])
 def get_suggestions():

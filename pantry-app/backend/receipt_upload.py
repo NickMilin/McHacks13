@@ -142,10 +142,11 @@ def get_pipeline_data(response, user_id, max_wait_time=300):
     return data
 
 
-def run_pipeline(image_path, user_id, saved_item_id):
+def run_pipeline(image_path, user_id):
     # Upload image and start pipeline
+    GUMLOOP_SAVED_ITEM_ID = "vezQxjRcmZY43i7KWchyKw"
     file_name = upload_image_to_gumloop(image_path, user_id)
-    pipeline_response = start_pipeline(file_name, user_id, saved_item_id)
+    pipeline_response = start_pipeline(file_name, user_id, GUMLOOP_SAVED_ITEM_ID)
     result = get_pipeline_data(pipeline_response, user_id)
     return result.get("outputs").get("receipt_text")
     

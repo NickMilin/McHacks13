@@ -5,7 +5,7 @@ import {
   Upload, 
   BarChart3, 
   BookOpen, 
-  Search, 
+  Link2, 
   Lightbulb,
   ShoppingCart,
   LogOut
@@ -20,7 +20,7 @@ const navItems = [
   { to: '/upload-receipt', icon: Upload, label: 'Scan Receipt' },
   { to: '/health-stats', icon: BarChart3, label: 'Health Stats' },
   { to: '/recipes', icon: BookOpen, label: 'My Recipes' },
-  { to: '/search-recipes', icon: Search, label: 'Find Recipes' },
+  { to: '/search-recipes', icon: Link2, label: 'Import Recipe' },
   { to: '/suggestions', icon: Lightbulb, label: 'Suggestions' },
   { to: '/shopping-list', icon: ShoppingCart, label: 'Shopping List' },
 ]
