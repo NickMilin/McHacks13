@@ -34,12 +34,13 @@ export function ThemeBackground() {
   useEffect(() => {
     const generateStars = () => {
       const newStars = []
-      for (let i = 0; i < 60; i++) {
+      // More stars spread across the entire screen including bottom
+      for (let i = 0; i < 150; i++) {
         newStars.push({
           id: i,
           left: Math.random() * 100,
-          top: Math.random() * 70,
-          size: Math.random() * 2 + 1,
+          top: Math.random() * 100, // Full height now
+          size: Math.random() * 2.5 + 0.5,
           delay: Math.random() * 3,
           duration: Math.random() * 2 + 1
         })
@@ -214,42 +215,49 @@ function Cloud({ className, style, size = 'medium' }) {
 
 // Shooting star component
 function ShootingStar() {
-  const [visible, setVisible] = useState(false)
-  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [stars, setStars] = useState([])
 
   useEffect(() => {
     const triggerShootingStar = () => {
-      setPosition({
-        x: Math.random() * 60 + 20,
-        y: Math.random() * 30 + 5
-      })
-      setVisible(true)
-      setTimeout(() => setVisible(false), 1000)
+      const id = Date.now()
+      const newStar = {
+        id,
+        x: Math.random() * 80 + 10,
+        y: Math.random() * 50 + 5
+      }
+      setStars(prev => [...prev, newStar])
+      setTimeout(() => {
+        setStars(prev => prev.filter(s => s.id !== id))
+      }, 1000)
     }
 
-    const scheduleNext = () => {
-      const delay = Math.random() * 10000 + 5000
-      return setTimeout(() => {
-        triggerShootingStar()
-        scheduleNext()
-      }, delay)
-    }
+    // Trigger multiple shooting stars more frequently
+    const intervals = [
+      setInterval(() => triggerShootingStar(), 3000),
+      setInterval(() => triggerShootingStar(), 4500),
+      setInterval(() => triggerShootingStar(), 6000),
+    ]
+    
+    // Initial shooting star
+    setTimeout(() => triggerShootingStar(), 1000)
 
-    const timeout = scheduleNext()
-    return () => clearTimeout(timeout)
+    return () => intervals.forEach(clearInterval)
   }, [])
 
-  if (!visible) return null
-
   return (
-    <div
-      className="absolute w-1 h-1 bg-white rounded-full animate-shooting-star"
-      style={{
-        left: `${position.x}%`,
-        top: `${position.y}%`,
-        boxShadow: '0 0 6px 2px rgba(255,255,255,0.8)'
-      }}
-    />
+    <>
+      {stars.map(star => (
+        <div
+          key={star.id}
+          className="absolute w-1 h-1 bg-white rounded-full animate-shooting-star"
+          style={{
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            boxShadow: '0 0 6px 2px rgba(255,255,255,0.8)'
+          }}
+        />
+      ))}
+    </>
   )
 }
 
