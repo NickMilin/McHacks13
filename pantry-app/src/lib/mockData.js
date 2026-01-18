@@ -136,6 +136,7 @@ export const categoryColors = {
   dairy: '#3b82f6',
   fruit: '#a855f7',
   fat: '#eab308',
+  condiment: '#ec4899',
   other: '#6b7280',
 };
 
@@ -146,5 +147,6 @@ export const categoryLabels = {
   dairy: 'Dairy',
   fruit: 'Fruits',
   fat: 'Fats & Oils',
+  condiment: 'Condiments',
   other: 'Other',
 };

@@ -20,6 +20,7 @@ const badgeVariants = cva(
         dairy: "border-transparent bg-blue-100 text-blue-800",
         fruit: "border-transparent bg-purple-100 text-purple-800",
         fat: "border-transparent bg-yellow-100 text-yellow-800",
+        condiment: "border-transparent bg-pink-100 text-pink-800",
         other: "border-transparent bg-gray-100 text-gray-800",
       },
     },
