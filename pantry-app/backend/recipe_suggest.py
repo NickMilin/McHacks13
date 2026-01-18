@@ -103,7 +103,7 @@ if __name__ == "__main__":
         
         # Configuration
         USER_ID = "ACFRzCqhciYjfQxd77vMlTxTMD22"
-        SAVED_ITEM_ID = "vtRxiVeJ9KfWYBHTXNx4Ug"
+        SAVED_ITEM_ID = "6rJM8cctyz3xjYTooAMjpe"
         
         pantry_csv = '''
         food_name,quantity,unit,food_category
@@ -128,7 +128,9 @@ Eggs,1,null,Proteins
         output = result.get("outputs")
         if output:
             print("\nPipeline output:")
-            print(output.get("citation_list"))
+            print(output.get("output1"))
+            print(output.get("output2"))
+            print(output.get("output3"))
         else:
             print("\nNo output found in result")
             
