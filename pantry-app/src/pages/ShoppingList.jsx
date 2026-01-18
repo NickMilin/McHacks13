@@ -300,7 +300,7 @@ export function ShoppingList() {
                 <p className="text-sm text-muted-foreground">Checked Off</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-orange-600">{uncheckedCount}</p>
+                <p className="text-3xl font-bold text-orange-500">{uncheckedCount}</p>
                 <p className="text-sm text-muted-foreground">Remaining</p>
               </div>
               <div>

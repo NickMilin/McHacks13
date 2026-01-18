@@ -110,18 +110,18 @@ export function Suggestions() {
       {expiringItems.length > 0 && (
         <Card className="border-orange-200 bg-orange-50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-orange-800">
+            <CardTitle className="flex items-center gap-2 text-orange-500">
               <AlertCircle className="h-5 w-5" />
               Use These Soon!
             </CardTitle>
-            <CardDescription className="text-orange-700">
+            <CardDescription className="text-orange-500">
               These items are expiring within 3 days
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {expiringItems.map(item => (
-                <Badge key={item.id} variant="outline" className="border-orange-300 text-orange-800">
+                <Badge key={item.id} variant="outline" className="text-orange-500 border-orange-300">
                   {item.name} - Expires {new Date(item.expiryDate).toLocaleDateString()}
                 </Badge>
               ))}
@@ -171,7 +171,7 @@ export function Suggestions() {
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-lg">{recipe.name}</CardTitle>
                   {recipe.expiringMatch > 0 && (
-                    <Badge className="bg-orange-100 text-orange-800 text-xs">
+                    <Badge className="bg-orange-100 text-orange-500 text-xs">
                       Uses expiring items
                     </Badge>
                   )}
@@ -195,7 +195,7 @@ export function Suggestions() {
                     <span className="text-sm font-medium">Pantry Match</span>
                     <span className={`text-sm font-bold ${
                       recipe.matchPercentage >= 80 ? 'text-green-600' :
-                      recipe.matchPercentage >= 50 ? 'text-orange-600' : 'text-red-600'
+                      recipe.matchPercentage >= 50 ? 'text-orange-500' : 'text-red-600'
                     }`}>
                       {recipe.matchPercentage}%
                     </span>
@@ -214,7 +214,7 @@ export function Suggestions() {
                 <p className="text-sm text-muted-foreground">
                   {recipe.matchCount} of {recipe.ingredients.length} ingredients in pantry
                   {recipe.missingCount > 0 && (
-                    <span className="text-orange-600">
+                    <span className="text-orange-500">
                       {' '}• Need {recipe.missingCount} more
                     </span>
                   )}

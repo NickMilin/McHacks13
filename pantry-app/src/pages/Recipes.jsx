@@ -229,7 +229,7 @@ export function Recipes() {
                 {canCook ? (
                   <Badge className="bg-green-100 text-green-800">Ready to Cook!</Badge>
                 ) : (
-                  <Badge variant="outline" className="text-orange-600 border-orange-300">
+                  <Badge variant="outline" className="text-orange-500 border-orange-300">
                     Need {missing.length} more ingredient{missing.length > 1 ? 's' : ''}
                   </Badge>
                 )}
@@ -453,11 +453,11 @@ export function Recipes() {
                 {/* Shopping List */}
                 {getMissingIngredients(selectedRecipe).length > 0 && (
                   <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                    <h3 className="font-semibold text-orange-800 flex items-center gap-2 mb-2">
+                    <h3 className="font-semibold text-orange-500 flex items-center gap-2 mb-2">
                       <ShoppingCart className="h-4 w-4" />
                       Shopping List
                     </h3>
-                    <ul className="space-y-1 text-sm text-orange-700">
+                    <ul className="space-y-1 text-sm text-orange-500">
                       {getMissingIngredients(selectedRecipe).map((item, i) => (
                         <li key={i}>• {item.quantity} {item.unit} {item.name}</li>
                       ))}

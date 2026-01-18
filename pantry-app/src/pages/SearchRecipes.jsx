@@ -216,7 +216,7 @@ export function SearchRecipes() {
                         <span className="text-sm font-medium">Pantry Match</span>
                         <span className={`text-sm font-bold ${
                           matchPercentage >= 80 ? 'text-green-600' :
-                          matchPercentage >= 50 ? 'text-orange-600' : 'text-red-600'
+                          matchPercentage >= 50 ? 'text-orange-500' : 'text-red-600'
                         }`}>
                           {matchPercentage}%
                         </span>
