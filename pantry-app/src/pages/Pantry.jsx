@@ -25,6 +25,9 @@ export function Pantry() {
     expiryDate: ''
   })
 
+  // Get the user's first name from displayName
+  const firstName = user?.displayName?.split(' ')[0] || 'My'
+
   // Load items automatically when component mounts or user changes
   useEffect(() => {
     loadItems()
@@ -125,7 +128,7 @@ export function Pantry() {
   return (
     <div className="p-8 space-y-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-white">My Pantry</h1>
+        <h1 className="text-3xl font-bold text-white">{firstName}'s Pantry</h1>
         <Button onClick={() => setIsAddDialogOpen(true)} disabled={!user}>
           <Plus className="mr-2 h-4 w-4" />
           Add Item
