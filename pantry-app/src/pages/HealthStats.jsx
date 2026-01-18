@@ -1,13 +1,38 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
-import { usePantry } from '@/contexts/PantryContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { pantryFirebase } from '@/lib/pantryFirebase'
 import { categoryColors, categoryLabels } from '@/lib/mockData'
 import { TrendingUp, Apple, Wheat, Drumstick, Milk, Droplet } from 'lucide-react'
 
 export function HealthStats() {
-  const { pantryItems } = usePantry()
+  const { user } = useAuth()
+  const [pantryItems, setPantryItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  // Load pantry items from Firebase
+  useEffect(() => {
+    const loadItems = async () => {
+      if (!user) {
+        setLoading(false)
+        return
+      }
+      try {
+        const items = await pantryFirebase.getItems(user.uid)
+        setPantryItems(items)
+        setError(null)
+      } catch (err) {
+        setError(err.message)
+        setPantryItems([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadItems()
+  }, [user])
 
   // Calculate category distribution
   const categoryStats = useMemo(() => {
@@ -81,6 +106,34 @@ export function HealthStats() {
         </p>
       </div>
 
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <p className="text-sm text-red-800">{error}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {loading && (
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Loading your pantry stats...</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {!loading && pantryItems.length === 0 && !error && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <p className="text-sm text-blue-800">
+              Your pantry is empty. Add items to see nutrition stats!
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {!loading && pantryItems.length > 0 && (
+      <>
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
@@ -267,6 +320,8 @@ export function HealthStats() {
           </ul>
         </CardContent>
       </Card>
+      </>
+      )}
     </div>
   )
 }

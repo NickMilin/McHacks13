@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -10,13 +11,38 @@ import {
   Lightbulb,
   AlertCircle
 } from 'lucide-react'
-import { usePantry } from '@/contexts/PantryContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { pantryFirebase } from '@/lib/pantryFirebase'
 
 export function Dashboard() {
-  const { pantryItems, getExpiringItems } = usePantry()
+  const { user } = useAuth()
+  const [pantryItems, setPantryItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const loadItems = async () => {
+      if (!user) {
+        setLoading(false)
+        return
+      }
+      try {
+        const items = await pantryFirebase.getItems(user.uid)
+        setPantryItems(items)
+        setError(null)
+      } catch (err) {
+        setError(err.message)
+        setPantryItems([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadItems()
+  }, [user])
 
   // Calculate expiring soon items (within 3 days)
   const expiringItems = pantryItems.filter(item => {
+    if (!item.expiryDate) return false
     const today = new Date()
     const expiryDate = new Date(item.expiryDate)
     const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
@@ -63,6 +89,24 @@ export function Dashboard() {
           Manage your pantry, discover recipes, and reduce food waste.
         </p>
       </div>
+
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <p className="text-sm text-red-800">{error}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {!loading && pantryItems.length === 0 && !error && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <p className="text-sm text-blue-800">
+              Your pantry is empty. Start by scanning a receipt or manually adding items!
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Expiring Soon Alert */}
       {expiringItems.length > 0 && (

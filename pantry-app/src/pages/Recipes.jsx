@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,9 +8,15 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, Trash2, Clock, Users, ChefHat, ShoppingCart, X, Check, ArrowLeft, ArrowRight, Flame, ExternalLink, BookOpen, PartyPopper } from 'lucide-react'
-import { mockRecipes, mockPantryItems, mockSubstitutes } from '@/lib/mockData'
+import { useAuth } from '@/contexts/AuthContext'
+import { pantryFirebase } from '@/lib/pantryFirebase'
+import { mockRecipes, mockSubstitutes } from '@/lib/mockData'
 
 export function Recipes() {
+  const { user } = useAuth()
+  const [pantryItems, setPantryItems] = useState([])
+  const [pantryLoading, setPantryLoading] = useState(true)
+  const [pantryError, setPantryError] = useState(null)
   const [recipes, setRecipes] = useState(mockRecipes)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [selectedRecipe, setSelectedRecipe] = useState(null)
@@ -28,10 +34,31 @@ export function Recipes() {
     servings: ''
   })
 
+  // Load pantry items from Firebase
+  useEffect(() => {
+    const loadItems = async () => {
+      if (!user) {
+        setPantryLoading(false)
+        return
+      }
+      try {
+        const items = await pantryFirebase.getItems(user.uid)
+        setPantryItems(items)
+        setPantryError(null)
+      } catch (err) {
+        setPantryError(err.message)
+        setPantryItems([])
+      } finally {
+        setPantryLoading(false)
+      }
+    }
+    loadItems()
+  }, [user])
+
   // Check which ingredients are missing from pantry
   const getMissingIngredients = (recipe) => {
     return recipe.ingredients.filter(ingredient => {
-      const pantryItem = mockPantryItems.find(
+      const pantryItem = pantryItems.find(
         item => item.name.toLowerCase().includes(ingredient.name.toLowerCase()) ||
                 ingredient.name.toLowerCase().includes(item.name.toLowerCase())
       )
@@ -43,7 +70,7 @@ export function Recipes() {
   // Check which ingredients are available
   const getAvailableIngredients = (recipe) => {
     return recipe.ingredients.filter(ingredient => {
-      const pantryItem = mockPantryItems.find(
+      const pantryItem = pantryItems.find(
         item => item.name.toLowerCase().includes(ingredient.name.toLowerCase()) ||
                 ingredient.name.toLowerCase().includes(item.name.toLowerCase())
       )
@@ -169,12 +196,12 @@ export function Recipes() {
   // Get substitutes that are available in the user's pantry
   const getPantrySubstitutes = (ingredientName) => {
     const allSubstitutes = mockSubstitutes[ingredientName] || []
-    const pantryNames = mockPantryItems.map(item => item.name.toLowerCase())
+    const pantryNames = pantryItems.map(item => item.name.toLowerCase())
     
     return allSubstitutes
       .filter(sub => pantryNames.includes(sub.toLowerCase()))
       .map(sub => {
-        const pantryItem = mockPantryItems.find(item => item.name.toLowerCase() === sub.toLowerCase())
+        const pantryItem = pantryItems.find(item => item.name.toLowerCase() === sub.toLowerCase())
         return {
           name: sub,
           pantryItem: pantryItem
@@ -424,7 +451,7 @@ export function Recipes() {
                   <h3 className="font-semibold mb-3">Ingredients</h3>
                   <ul className="space-y-2">
                     {selectedRecipe.ingredients.map((ingredient, index) => {
-                      const inPantry = mockPantryItems.find(
+                      const inPantry = pantryItems.find(
                         item => item.name.toLowerCase().includes(ingredient.name.toLowerCase())
                       )
                       const pantrySubstitutes = getPantrySubstitutes(ingredient.name)

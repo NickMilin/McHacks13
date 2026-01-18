@@ -1,28 +1,56 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Lightbulb, Clock, Users, ChefHat, Sparkles, AlertCircle, Check, X, ShoppingCart, Flame, ArrowLeft, ArrowRight, PartyPopper, ExternalLink, BookOpen } from 'lucide-react'
-import { mockPantryItems, mockRecipes } from '@/lib/mockData'
+import { useAuth } from '@/contexts/AuthContext'
+import { pantryFirebase } from '@/lib/pantryFirebase'
+import { mockRecipes } from '@/lib/mockData'
 
 export function Suggestions() {
+  const { user } = useAuth()
+  const [pantryItems, setPantryItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [selectedRecipe, setSelectedRecipe] = useState(null)
   const [cookingRecipe, setCookingRecipe] = useState(null)
   const [currentStep, setCurrentStep] = useState(0)
   const [notification, setNotification] = useState({ open: false, title: '', message: '' })
+
+  // Load pantry items from Firebase
+  useEffect(() => {
+    const loadItems = async () => {
+      if (!user) {
+        setLoading(false)
+        return
+      }
+      try {
+        const items = await pantryFirebase.getItems(user.uid)
+        setPantryItems(items)
+        setError(null)
+      } catch (err) {
+        setError(err.message)
+        setPantryItems([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadItems()
+  }, [user])
 
   // Get expiring items
   const expiringItems = useMemo(() => {
     const today = new Date()
     const threeDaysFromNow = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000)
     
-    return mockPantryItems.filter(item => {
+    return pantryItems.filter(item => {
+      if (!item.expiryDate) return false
       const expiryDate = new Date(item.expiryDate)
       return expiryDate <= threeDaysFromNow && expiryDate >= today
     })
-  }, [])
+  }, [pantryItems])
 
   // Calculate which recipes can be made with current pantry
   const recipeSuggestions = useMemo(() => {
@@ -31,7 +59,7 @@ export function Suggestions() {
       let expiringMatch = 0
       
       recipe.ingredients.forEach(ingredient => {
-        const pantryItem = mockPantryItems.find(
+        const pantryItem = pantryItems.find(
           item => item.name.toLowerCase().includes(ingredient.name.toLowerCase()) ||
                   ingredient.name.toLowerCase().includes(item.name.toLowerCase())
         )
@@ -61,7 +89,7 @@ export function Suggestions() {
       // Then by match percentage
       return b.matchPercentage - a.matchPercentage
     })
-  }, [expiringItems])
+  }, [pantryItems, expiringItems])
 
   // Generate AI suggestions (mock)
   const aiSuggestions = useMemo(() => {
@@ -91,7 +119,7 @@ export function Suggestions() {
   // Get missing ingredients for a recipe
   const getMissingIngredients = (recipe) => {
     return recipe.ingredients.filter(ingredient => {
-      const pantryItem = mockPantryItems.find(
+      const pantryItem = pantryItems.find(
         item => item.name.toLowerCase().includes(ingredient.name.toLowerCase()) ||
                 ingredient.name.toLowerCase().includes(item.name.toLowerCase())
       )
@@ -162,6 +190,32 @@ export function Suggestions() {
           Personalized recommendations based on your pantry
         </p>
       </div>
+
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <p className="text-sm text-red-800">{error}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {loading && (
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Loading your pantry...</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {!loading && pantryItems.length === 0 && !error && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <p className="text-sm text-blue-800">
+              Your pantry is empty. Add items to see recipe suggestions!
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Expiring Items Alert */}
       {expiringItems.length > 0 && (
@@ -346,7 +400,7 @@ export function Suggestions() {
                   <h3 className="font-semibold mb-3">Ingredients</h3>
                   <ul className="space-y-2">
                     {selectedRecipe.ingredients.map((ingredient, index) => {
-                      const inPantry = mockPantryItems.find(
+                      const inPantry = pantryItems.find(
                         item => item.name.toLowerCase().includes(ingredient.name.toLowerCase()) ||
                                 ingredient.name.toLowerCase().includes(item.name.toLowerCase())
                       )

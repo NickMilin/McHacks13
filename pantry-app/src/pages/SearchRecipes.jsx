@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -6,9 +6,14 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Search, Clock, Users, ExternalLink, ShoppingCart, Check, X, Loader2, ChefHat, Flame, ArrowLeft, ArrowRight, BookmarkPlus, Sparkles, PartyPopper, BookOpen } from 'lucide-react'
-import { mockPantryItems } from '@/lib/mockData'
+import { useAuth } from '@/contexts/AuthContext'
+import { pantryFirebase } from '@/lib/pantryFirebase'
 
 export function SearchRecipes() {
+  const { user } = useAuth()
+  const [pantryItems, setPantryItems] = useState([])
+  const [pantryLoading, setPantryLoading] = useState(true)
+  const [pantryError, setPantryError] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
@@ -18,6 +23,27 @@ export function SearchRecipes() {
   const [cookingRecipe, setCookingRecipe] = useState(null)
   const [currentStep, setCurrentStep] = useState(0)
   const [notification, setNotification] = useState({ open: false, title: '', message: '', type: 'success' })
+
+  // Load pantry items from Firebase
+  useEffect(() => {
+    const loadItems = async () => {
+      if (!user) {
+        setPantryLoading(false)
+        return
+      }
+      try {
+        const items = await pantryFirebase.getItems(user.uid)
+        setPantryItems(items)
+        setPantryError(null)
+      } catch (err) {
+        setPantryError(err.message)
+        setPantryItems([])
+      } finally {
+        setPantryLoading(false)
+      }
+    }
+    loadItems()
+  }, [user])
 
   // Simulate recipe search
   const handleSearch = async (query = searchQuery) => {
@@ -146,7 +172,7 @@ export function SearchRecipes() {
     const missing = []
     
     ingredients.forEach(ingredient => {
-      const inPantry = mockPantryItems.find(
+      const inPantry = pantryItems.find(
         item => item.name.toLowerCase().includes(ingredient.name.toLowerCase()) ||
                 ingredient.name.toLowerCase().includes(item.name.toLowerCase())
       )
@@ -575,7 +601,7 @@ export function SearchRecipes() {
                         </h4>
                         <ul className="space-y-2">
                           {ingredients.map((ingredient, index) => {
-                            const inPantry = mockPantryItems.find(
+                            const inPantry = pantryItems.find(
                               item => item.name.toLowerCase().includes(ingredient.name.toLowerCase()) ||
                                       ingredient.name.toLowerCase().includes(item.name.toLowerCase())
                             )

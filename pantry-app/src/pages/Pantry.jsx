@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Edit } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { pantryFirebase } from '@/lib/pantryFirebase'
 import { categoryLabels } from '@/lib/mockData'
@@ -15,6 +15,8 @@ export function Pantry() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState(null)
   const [newItem, setNewItem] = useState({
     name: '',
     quantity: '',
@@ -64,6 +66,36 @@ export function Pantry() {
     } catch (err) {
       setError(err.message)
     }
+  }
+
+  const handleEditItem = async () => {
+    if (!user || !editingItem) return
+    if (!editingItem.name || !editingItem.quantity) {
+      setError('Name and quantity are required')
+      return
+    }
+    try {
+      await pantryFirebase.updateItem(user.uid, editingItem.id, {
+        name: editingItem.name,
+        quantity: parseFloat(editingItem.quantity),
+        unit: editingItem.unit || '',
+        category: editingItem.category,
+        expiryDate: editingItem.expiryDate || null
+      })
+      setPantryItems(prev => prev.map(item => 
+        item.id === editingItem.id ? editingItem : item
+      ))
+      setEditingItem(null)
+      setIsEditDialogOpen(false)
+      setError(null)
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  const openEditDialog = (item) => {
+    setEditingItem({ ...item })
+    setIsEditDialogOpen(true)
   }
 
   const deleteItem = async (itemId) => {
@@ -128,13 +160,22 @@ export function Pantry() {
                 </p>
               )}
             </div>
-            <Button 
-              onClick={() => deleteItem(item.id)} 
-              variant="destructive"
-              size="sm"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => openEditDialog(item)}
+                variant="outline"
+                size="sm"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button 
+                onClick={() => deleteItem(item.id)} 
+                variant="destructive"
+                size="sm"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         ))}
         {pantryItems.length === 0 && (
@@ -213,6 +254,82 @@ export function Pantry() {
             </Button>
             <Button onClick={handleAddItem}>
               Add Item
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Item Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Item</DialogTitle>
+          </DialogHeader>
+          {editingItem && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="edit-name">Item Name *</Label>
+                <Input
+                  id="edit-name"
+                  placeholder="e.g., Milk, Chicken, Tomatoes"
+                  value={editingItem.name}
+                  onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-quantity">Quantity *</Label>
+                  <Input
+                    id="edit-quantity"
+                    type="number"
+                    step="0.01"
+                    placeholder="e.g., 2"
+                    value={editingItem.quantity}
+                    onChange={(e) => setEditingItem({ ...editingItem, quantity: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-unit">Unit</Label>
+                  <Input
+                    id="edit-unit"
+                    placeholder="e.g., kg, pcs, liters"
+                    value={editingItem.unit}
+                    onChange={(e) => setEditingItem({ ...editingItem, unit: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-category">Category</Label>
+                <Select
+                  value={editingItem.category}
+                  onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })}
+                >
+                  {Object.entries(categoryLabels).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-expiryDate">Expiry Date</Label>
+                <Input
+                  id="edit-expiryDate"
+                  type="date"
+                  value={editingItem.expiryDate || ''}
+                  onChange={(e) => setEditingItem({ ...editingItem, expiryDate: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEditItem}>
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>

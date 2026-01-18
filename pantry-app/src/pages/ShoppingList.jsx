@@ -1,17 +1,44 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ShoppingCart, Plus, Trash2, Check, Download, Share2, X } from 'lucide-react'
-import { mockRecipes, mockPantryItems, categoryLabels } from '@/lib/mockData'
+import { useAuth } from '@/contexts/AuthContext'
+import { pantryFirebase } from '@/lib/pantryFirebase'
+import { mockRecipes, categoryLabels } from '@/lib/mockData'
 
 export function ShoppingList() {
+  const { user } = useAuth()
+  const [pantryItems, setPantryItems] = useState([])
+  const [pantryLoading, setPantryLoading] = useState(true)
+  const [pantryError, setPantryError] = useState(null)
   const [customItems, setCustomItems] = useState([])
   const [newItemName, setNewItemName] = useState('')
   const [checkedItems, setCheckedItems] = useState(new Set())
   const [selectedRecipes, setSelectedRecipes] = useState(new Set([1, 2])) // Default selected recipes
   const [removedItems, setRemovedItems] = useState(new Set()) // Track removed recipe items
+
+  // Load pantry items from Firebase
+  useEffect(() => {
+    const loadItems = async () => {
+      if (!user) {
+        setPantryLoading(false)
+        return
+      }
+      try {
+        const items = await pantryFirebase.getItems(user.uid)
+        setPantryItems(items)
+        setPantryError(null)
+      } catch (err) {
+        setPantryError(err.message)
+        setPantryItems([])
+      } finally {
+        setPantryLoading(false)
+      }
+    }
+    loadItems()
+  }, [user])
 
   // Calculate missing ingredients from selected recipes
   const missingIngredients = useMemo(() => {
@@ -21,7 +48,7 @@ export function ShoppingList() {
       .filter(recipe => selectedRecipes.has(recipe.id))
       .forEach(recipe => {
         recipe.ingredients.forEach(ingredient => {
-          const inPantry = mockPantryItems.find(
+          const inPantry = pantryItems.find(
             item => item.name.toLowerCase().includes(ingredient.name.toLowerCase()) ||
                     ingredient.name.toLowerCase().includes(item.name.toLowerCase())
           )
@@ -49,7 +76,7 @@ export function ShoppingList() {
     
     // Filter out removed items
     return Array.from(missing.values()).filter(item => !removedItems.has(item.id))
-  }, [selectedRecipes, removedItems])
+  }, [selectedRecipes, removedItems, pantryItems])
 
   // All shopping list items
   const allItems = [...missingIngredients, ...customItems]
