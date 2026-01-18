@@ -12,7 +12,7 @@ gumloop_api_key = os.getenv('GUMLOOP')
 if not gumloop_api_key:
     raise ValueError("GUMLOOP API key not found in environment variables")
 
-def start_pipeline(recipe_link, user_id, saved_item_id):    
+def start_pipeline(pantry_csv, user_id, saved_item_id):    
     # Prepare the API request for starting a pipeline with file
     url = "https://api.gumloop.com/api/v1/start_pipeline"
     
@@ -23,8 +23,8 @@ def start_pipeline(recipe_link, user_id, saved_item_id):
         "saved_item_id": saved_item_id,
         "pipeline_inputs": [
             {
-                "input_name": "recipe_link",
-                "value": f"{recipe_link}"
+                "input_name": "pantry",
+                "value": f"{pantry_csv}"
             }
         ]
     }
@@ -35,7 +35,7 @@ def start_pipeline(recipe_link, user_id, saved_item_id):
     }
     
     # Make the request
-    print(f"Starting pipeline with link: {recipe_link}")
+    print(f"Starting pipeline to suggest recipes")
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=30)
         response.raise_for_status()
@@ -89,9 +89,9 @@ def get_pipeline_data(response, user_id, max_wait_time=300):
     return data
 
 
-def run_pipeline(recipe_link, user_id, saved_item_id):
+def run_pipeline(pantry_csv, user_id, saved_item_id):
     # Upload image and start pipeline
-    pipeline_response = start_pipeline(recipe_link, user_id, saved_item_id)
+    pipeline_response = start_pipeline(pantry_csv, user_id, saved_item_id)
     result = get_pipeline_data(pipeline_response, user_id)
     return result.get("outputs").get("recipe_json")
     
@@ -103,11 +103,24 @@ if __name__ == "__main__":
         
         # Configuration
         USER_ID = "ACFRzCqhciYjfQxd77vMlTxTMD22"
-        SAVED_ITEM_ID = "hqBPoCuJVrK2FTJ4ejFUqf"
-        recipe_link = "https://easychickenrecipes.com/bbq-chicken-sandwiches-stovetop/#recipe"
+        SAVED_ITEM_ID = "vtRxiVeJ9KfWYBHTXNx4Ug"
         
-        
-        pipeline_call = start_pipeline(recipe_link, USER_ID, SAVED_ITEM_ID)
+        pantry_csv = '''
+        food_name,quantity,unit,food_category
+Jasmine Rice,1,null,Grains
+Jasmine Rice,1,null,Grains
+Chicken Breast,1,null,Proteins
+NY Strip Steak,1,null,Proteins
+Onions,1.24,null,Vegetables
+Potatoes,1.80,null,Vegetables
+Garlic,0.27,null,Vegetables
+Bananas,2.52,null,Fruits
+Broccoli Crowns,1.29,null,Vegetables
+Green Onions,1,null,Vegetables
+Sesame Seeds,1,null,Proteins
+Eggs,1,null,Proteins
+        '''
+        pipeline_call = start_pipeline(pantry_csv, USER_ID, SAVED_ITEM_ID)
         print(f"Pipeline started with run_id: {pipeline_call.get('run_id')}")
         
         result = get_pipeline_data(pipeline_call, USER_ID)
@@ -115,7 +128,7 @@ if __name__ == "__main__":
         output = result.get("outputs")
         if output:
             print("\nPipeline output:")
-            print(output.get("recipe_json"))
+            print(output.get("citation_list"))
         else:
             print("\nNo output found in result")
             
