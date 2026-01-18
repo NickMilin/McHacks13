@@ -9,10 +9,13 @@ from PIL import Image
 load_dotenv(override=True)
 gumloop_api_key = os.getenv('GUMLOOP')
 
-if not gumloop_api_key:
-    raise ValueError("GUMLOOP API key not found in environment variables")
+# Don't crash on import - defer error to runtime when the key is actually needed
+def _check_api_key():
+    if not gumloop_api_key:
+        raise ValueError("GUMLOOP API key not found in environment variables. Add GUMLOOP=your_key to .env file.")
 
-def start_pipeline(pantry_csv, user_id, saved_item_id):    
+def start_pipeline(pantry_csv, user_id, saved_item_id):
+    _check_api_key()    
     # Prepare the API request for starting a pipeline with file
     url = "https://api.gumloop.com/api/v1/start_pipeline"
     
@@ -89,7 +92,7 @@ def get_pipeline_data(response, user_id, max_wait_time=300):
     return data
 
 
-def run_pipeline(pantry_csv, user_id, saved_item_id):
+def run_pipeline(pantry_csv, user_id):
     # Upload image and start pipeline
     GUMLOOP_SAVED_ITEM_ID = "6rJM8cctyz3xjYTooAMjpe"
     pipeline_response = start_pipeline(pantry_csv, user_id, GUMLOOP_SAVED_ITEM_ID)
@@ -108,18 +111,18 @@ if __name__ == "__main__":
         
         pantry_csv = '''
         food_name,quantity,unit,food_category
-Jasmine Rice,1,null,Grains
-Jasmine Rice,1,null,Grains
-Chicken Breast,1,null,Proteins
-NY Strip Steak,1,null,Proteins
-Onions,1.24,null,Vegetables
-Potatoes,1.80,null,Vegetables
-Garlic,0.27,null,Vegetables
-Bananas,2.52,null,Fruits
-Broccoli Crowns,1.29,null,Vegetables
-Green Onions,1,null,Vegetables
-Sesame Seeds,1,null,Proteins
-Eggs,1,null,Proteins
+        Jasmine Rice,1,null,Grains
+        Jasmine Rice,1,null,Grains
+        Chicken Breast,1,null,Proteins
+        NY Strip Steak,1,null,Proteins
+        Onions,1.24,null,Vegetables
+        Potatoes,1.80,null,Vegetables
+        Garlic,0.27,null,Vegetables
+        Bananas,2.52,null,Fruits
+        Broccoli Crowns,1.29,null,Vegetables
+        Green Onions,1,null,Vegetables
+        Sesame Seeds,1,null,Proteins
+        Eggs,1,null,Proteins
         '''
         pipeline_call = start_pipeline(pantry_csv, USER_ID, SAVED_ITEM_ID)
         print(f"Pipeline started with run_id: {pipeline_call.get('run_id')}")

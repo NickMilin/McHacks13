@@ -17,6 +17,7 @@ import tempfile
 from dotenv import load_dotenv
 from receipt_upload import run_pipeline
 from recipe_provided import run_pipeline as run_recipe_pipeline
+from recipe_suggest import run_pipeline as run_suggest_pipeline
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
@@ -201,9 +202,56 @@ def get_recipe_from_url():
     except Exception as e:
         return jsonify({'error': f'Processing failed: {str(e)}'}), 500
 
-@app.route('/api/recipes/suggestions', methods=['GET'])
+@app.route('/api/recipes/suggestions', methods=['POST'])
 def get_suggestions():
-    return jsonify({'error': 'Not implemented in this build'}), 501
+    """
+    Generate recipe suggestions based on pantry items.
+    Expects a POST with JSON body containing pantry_csv string.
+    Returns 3 recipe suggestions.
+    """
+    data = request.get_json()
+    if not data or 'pantry_csv' not in data:
+        return jsonify({'error': 'No pantry data provided'}), 400
+    
+    pantry_csv = data['pantry_csv'].strip()
+    if not pantry_csv:
+        return jsonify({'error': 'Empty pantry data provided'}), 400
+    
+    try:
+        # Process through Gumloop suggestion pipeline
+        outputs = run_suggest_pipeline(pantry_csv, GUMLOOP_USER_ID)
+        
+        if not outputs:
+            return jsonify({'error': 'No suggestions returned from pipeline'}), 500
+        
+        # Parse the 3 recipe outputs
+        recipes = []
+        for i in range(1, 4):
+            output_key = f'output{i}'
+            recipe_str = outputs.get(output_key)
+            if recipe_str:
+                try:
+                    recipe_data = json.loads(recipe_str)
+                    recipe_data['id'] = i
+                    recipe_data['source'] = 'AI Suggested'
+                    recipes.append(recipe_data)
+                except json.JSONDecodeError:
+                    # If it's already a dict, use it directly
+                    if isinstance(recipe_str, dict):
+                        recipe_str['id'] = i
+                        recipe_str['source'] = 'AI Suggested'
+                        recipes.append(recipe_str)
+        
+        return jsonify({
+            'success': True,
+            'recipes': recipes,
+            'count': len(recipes)
+        })
+        
+    except TimeoutError as e:
+        return jsonify({'error': f'Processing timeout: {str(e)}'}), 504
+    except Exception as e:
+        return jsonify({'error': f'Processing failed: {str(e)}'}), 500
 
 @app.route('/api/recipes/<int:recipe_id>/shopping-list', methods=['GET'])
 def get_shopping_list(recipe_id):

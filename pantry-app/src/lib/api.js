@@ -84,8 +84,11 @@ export const recipeApi = {
   // Search recipes online by dish name
   searchOnline: (query) => apiCall(`/recipes/search?q=${encodeURIComponent(query)}`),
   
-  // Get recipe suggestions based on pantry
-  getSuggestions: () => apiCall('/recipes/suggestions'),
+  // Get recipe suggestions based on pantry (accepts pantry CSV string)
+  getSuggestions: (pantryCSV) => apiCall('/recipes/suggestions', {
+    method: 'POST',
+    body: JSON.stringify({ pantry_csv: pantryCSV }),
+  }),
   
   // Get shopping list for a recipe
   getShoppingList: (recipeId) => apiCall(`/recipes/${recipeId}/shopping-list`),
