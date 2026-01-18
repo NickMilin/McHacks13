@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,6 +24,11 @@ export function Pantry() {
     category: 'other',
     expiryDate: ''
   })
+
+  // Load items automatically when component mounts or user changes
+  useEffect(() => {
+    loadItems()
+  }, [user])
 
   const loadItems = async () => {
     if (!user) return
@@ -135,9 +140,6 @@ export function Pantry() {
       </div>
 
       <div className="space-x-2">
-        <Button onClick={loadItems} disabled={!user} variant="outline">
-          {loading ? 'Loading...' : 'Load Items'}
-        </Button>
         <Button onClick={exportCSV} disabled={!user} variant="outline">
           Export CSV
         </Button>
