@@ -12,6 +12,7 @@ from flask_cors import CORS
 import os
 import json
 import traceback
+import uuid
 from dotenv import load_dotenv
 
 # Import Gumloop pipeline functions
@@ -34,6 +35,25 @@ USER_ID = os.getenv('GUMLOOP_USER_ID', 'ACFRzCqhciYjfQxd77vMlTxTMD22')
 RECEIPT_PIPELINE_ID = os.getenv('RECEIPT_PIPELINE_ID', 'vezQxjRcmZY43i7KWchyKw')
 SUGGEST_PIPELINE_ID = os.getenv('SUGGEST_PIPELINE_ID', '6rJM8cctyz3xjYTooAMjpe')
 PROVIDED_PIPELINE_ID = os.getenv('PROVIDED_PIPELINE_ID', 'hqBPoCuJVrK2FTJ4ejFUqf')
+
+# Constants
+WASTE_SAVED_MULTIPLIER = 0.5  # Mock multiplier for waste saved calculation
+
+# ============================================================
+# HELPER FUNCTIONS
+# ============================================================
+
+def find_matching_pantry_item(ingredient_name, pantry_items_list):
+    """
+    Find a pantry item that matches the ingredient name.
+    Returns the index of the matching item, or -1 if not found.
+    """
+    for i, item in enumerate(pantry_items_list):
+        item_name = item.get('name', '').lower()
+        ingredient_lower = ingredient_name.lower()
+        if item_name in ingredient_lower or ingredient_lower in item_name:
+            return i
+    return -1
 
 # ============================================================
 # PANTRY ENDPOINTS
@@ -174,8 +194,10 @@ def upload_receipt():
                 'error': 'No file selected'
             }), 400
         
-        # Save the file temporarily
-        temp_path = os.path.join('/tmp', file.filename)
+        # Generate a safe filename to prevent directory traversal
+        file_ext = os.path.splitext(file.filename)[1] if file.filename else '.jpg'
+        safe_filename = f"receipt_{uuid.uuid4().hex}{file_ext}"
+        temp_path = os.path.join('/tmp', safe_filename)
         file.save(temp_path)
         
         try:
@@ -310,12 +332,11 @@ def cook_recipe(recipe_id):
         removed_items = []
         if 'ingredients' in recipe:
             for ingredient in recipe['ingredients']:
+                ingredient_name = ingredient.get('name', '')
                 # Find matching pantry item
-                for i, item in enumerate(pantry_items):
-                    if item.get('name', '').lower() in ingredient.get('name', '').lower() or \
-                       ingredient.get('name', '').lower() in item.get('name', '').lower():
-                        removed_items.append(pantry_items.pop(i))
-                        break
+                item_index = find_matching_pantry_item(ingredient_name, pantry_items)
+                if item_index >= 0:
+                    removed_items.append(pantry_items.pop(item_index))
         
         return jsonify({
             'success': True,
@@ -484,15 +505,10 @@ def get_shopping_list(recipe_id):
         missing_ingredients = []
         if 'ingredients' in recipe:
             for ingredient in recipe['ingredients']:
+                ingredient_name = ingredient.get('name', '')
                 # Check if ingredient is in pantry
-                found = False
-                for item in pantry_items:
-                    if item.get('name', '').lower() in ingredient.get('name', '').lower() or \
-                       ingredient.get('name', '').lower() in item.get('name', '').lower():
-                        found = True
-                        break
-                
-                if not found:
+                item_index = find_matching_pantry_item(ingredient_name, pantry_items)
+                if item_index < 0:
                     missing_ingredients.append(ingredient)
         
         return jsonify({
@@ -575,7 +591,7 @@ def get_stats():
                 'total_recipes': total_recipes,
                 'categories': categories,
                 'expiring_soon': expiring_soon,
-                'waste_saved': total_items * 0.5,  # Mock calculation
+                'waste_saved': total_items * WASTE_SAVED_MULTIPLIER,
             }
         }), 200
     except Exception as e:
