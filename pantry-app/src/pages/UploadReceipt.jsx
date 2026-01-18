@@ -3,14 +3,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Upload, Camera, FileImage, Check, X, Loader2, Trash2, RotateCcw } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import { pantryFirebase } from '@/lib/pantryFirebase'
 import { categoryLabels } from '@/lib/mockData'
 
 export function UploadReceipt() {
+  const { user } = useAuth()
   const [isDragging, setIsDragging] = useState(false)
   const [uploadedImage, setUploadedImage] = useState(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [extractedItems, setExtractedItems] = useState([])
   const [selectedItems, setSelectedItems] = useState(new Set())
+  const [isAdding, setIsAdding] = useState(false)
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' })
 
   // Handle file drop
   const handleDrop = useCallback((e) => {
@@ -78,18 +83,50 @@ export function UploadReceipt() {
   }
 
   // Add selected items to pantry
-  const handleAddToPantry = () => {
+  const handleAddToPantry = async () => {
+    if (!user) {
+      setNotification({ show: true, message: 'You must be logged in', type: 'error' })
+      return
+    }
+
     const itemsToAdd = extractedItems.filter(item => selectedItems.has(item.id))
-    console.log('Adding to pantry:', itemsToAdd)
-    
-    // TODO: Call Flask API to add items
-    // itemsToAdd.forEach(item => pantryApi.addItem(item))
-    
-    // Reset state
-    alert(`Added ${itemsToAdd.length} items to your pantry!`)
-    setUploadedImage(null)
-    setExtractedItems([])
-    setSelectedItems(new Set())
+    if (itemsToAdd.length === 0) {
+      setNotification({ show: true, message: 'No items selected', type: 'error' })
+      return
+    }
+
+    setIsAdding(true)
+    try {
+      // Add each item to Firebase
+      for (const item of itemsToAdd) {
+        await pantryFirebase.addItem(user.uid, {
+          name: item.name,
+          quantity: item.quantity,
+          unit: item.unit || '',
+          category: item.category || 'other',
+          expiryDate: null
+        })
+      }
+      
+      setNotification({ 
+        show: true, 
+        message: `Successfully added ${itemsToAdd.length} item${itemsToAdd.length !== 1 ? 's' : ''} to your pantry!`, 
+        type: 'success' 
+      })
+      
+      // Reset state
+      setUploadedImage(null)
+      setExtractedItems([])
+      setSelectedItems(new Set())
+    } catch (error) {
+      setNotification({ 
+        show: true, 
+        message: `Error adding items: ${error.message}`, 
+        type: 'error' 
+      })
+    } finally {
+      setIsAdding(false)
+    }
   }
 
   // Reset upload
@@ -108,6 +145,17 @@ export function UploadReceipt() {
           Upload a photo of your grocery receipt to automatically add items to your pantry
         </p>
       </div>
+
+      {/* Notification */}
+      {notification.show && (
+        <Card className={notification.type === 'error' ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}>
+          <CardContent className="pt-6">
+            <p className={notification.type === 'error' ? 'text-sm text-red-800' : 'text-sm text-green-800'}>
+              {notification.message}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Upload Area */}
@@ -268,10 +316,17 @@ export function UploadReceipt() {
                 {/* Add to Pantry Button */}
                 <Button
                   onClick={handleAddToPantry}
-                  disabled={selectedItems.size === 0}
+                  disabled={selectedItems.size === 0 || isAdding}
                   className="w-full"
                 >
-                  Add {selectedItems.size} Items to Pantry
+                  {isAdding ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Adding Items...
+                    </>
+                  ) : (
+                    `Add ${selectedItems.size} Items to Pantry`
+                  )}
                 </Button>
               </div>
             ) : (
