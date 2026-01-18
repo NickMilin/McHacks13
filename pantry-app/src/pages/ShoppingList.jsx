@@ -196,10 +196,6 @@ export function ShoppingList() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExport}>
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
           <Button variant="outline" onClick={handleShare}>
             <Share2 className="mr-2 h-4 w-4" />
             Share
