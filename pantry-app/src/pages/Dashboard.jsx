@@ -23,7 +23,7 @@ export function Dashboard() {
   // Typewriter effect state for title
   const [displayedText, setDisplayedText] = useState('')
   const [titleComplete, setTitleComplete] = useState(false)
-  const fullText = 'Welcome to PantryPal 👋'
+  const fullText = 'Welcome to PantryPal'
   
   // Rotating subtitle typewriter state
   const [displayedSubtitle, setDisplayedSubtitle] = useState('')
@@ -154,54 +154,56 @@ export function Dashboard() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-black uppercase tracking-tight relative inline-block">
-          {/* 3D shadow layers */}
-          <span 
-            className="absolute text-slate-900"
-            style={{ transform: 'translate(4px, 4px)', letterSpacing: '-0.02em' }}
-            aria-hidden="true"
-          >
-            {displayedText}
-          </span>
-          <span 
-            className="absolute text-slate-800"
-            style={{ transform: 'translate(3px, 3px)', letterSpacing: '-0.02em' }}
-            aria-hidden="true"
-          >
-            {displayedText}
-          </span>
-          <span 
-            className="absolute text-slate-700"
-            style={{ transform: 'translate(2px, 2px)', letterSpacing: '-0.02em' }}
-            aria-hidden="true"
-          >
-            {displayedText}
-          </span>
-          <span 
-            className="absolute text-slate-600"
-            style={{ transform: 'translate(1px, 1px)', letterSpacing: '-0.02em' }}
-            aria-hidden="true"
-          >
-            {displayedText}
-          </span>
-          {/* Main text */}
-          <span 
-            className="relative"
-            style={{
-              background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 30%, #e2e8f0 60%, #cbd5e1 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              letterSpacing: '-0.02em',
-              filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
-            }}
-          >
-            {displayedText}
-          </span>
-          {displayedText.length < fullText.length && (
-            <span className="animate-pulse text-white">|</span>
-          )}
-        </h1>
+        <div className="relative">
+          <h1 className="text-3xl font-black uppercase tracking-tight relative">
+            {/* 3D shadow layers */}
+            <span 
+              className="absolute text-slate-900"
+              style={{ transform: 'translate(4px, 4px)', letterSpacing: '-0.02em' }}
+              aria-hidden="true"
+            >
+              {displayedText}
+            </span>
+            <span 
+              className="absolute text-slate-800"
+              style={{ transform: 'translate(3px, 3px)', letterSpacing: '-0.02em' }}
+              aria-hidden="true"
+            >
+              {displayedText}
+            </span>
+            <span 
+              className="absolute text-slate-700"
+              style={{ transform: 'translate(2px, 2px)', letterSpacing: '-0.02em' }}
+              aria-hidden="true"
+            >
+              {displayedText}
+            </span>
+            <span 
+              className="absolute text-slate-600"
+              style={{ transform: 'translate(1px, 1px)', letterSpacing: '-0.02em' }}
+              aria-hidden="true"
+            >
+              {displayedText}
+            </span>
+            {/* Main text */}
+            <span 
+              className="relative"
+              style={{
+                background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 30%, #e2e8f0 60%, #cbd5e1 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                letterSpacing: '-0.02em',
+                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
+              }}
+            >
+              {displayedText}
+            </span>
+            {displayedText.length < fullText.length && (
+              <span className="animate-pulse text-white">|</span>
+            )}
+          </h1>
+        </div>
         <p className="text-white/90 mt-3 min-h-[1.5rem] text-lg">
           {displayedSubtitle}
           <span className="animate-pulse ml-0.5">|</span>
@@ -261,7 +263,7 @@ export function Dashboard() {
 
       {/* Quick Actions */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+        <h2 className="text-xl font-semibold mb-4 text-white">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickActions.map((action) => (
             <Link key={action.to} to={action.to}>
