@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, Trash2, Clock, Users, ChefHat, ShoppingCart, X, Check, ArrowLeft, ArrowRight, Flame } from 'lucide-react'
+import { Plus, Trash2, Clock, Users, ChefHat, ShoppingCart, X, Check, ArrowLeft, ArrowRight, Flame, ExternalLink, BookOpen, PartyPopper } from 'lucide-react'
 import { mockRecipes, mockPantryItems, mockSubstitutes } from '@/lib/mockData'
 
 export function Recipes() {
@@ -18,6 +18,7 @@ export function Recipes() {
   const [showSubstitutes, setShowSubstitutes] = useState(null)
   const [cookingRecipe, setCookingRecipe] = useState(null)
   const [currentStep, setCurrentStep] = useState(0)
+  const [notification, setNotification] = useState({ open: false, title: '', message: '' })
   
   const [newRecipe, setNewRecipe] = useState({
     name: '',
@@ -137,8 +138,13 @@ export function Recipes() {
 
   // Finish cooking
   const finishCooking = () => {
-    alert(`Finished cooking "${cookingRecipe.name}"! Ingredients have been removed from your pantry.`)
+    const recipeName = cookingRecipe.name
     closeCookingMode()
+    setNotification({
+      open: true,
+      title: 'Cooking Complete!',
+      message: `You've finished cooking "${recipeName}"! Ingredients have been removed from your pantry.`
+    })
     // TODO: Call Flask API to update pantry
     // recipeApi.cookRecipe(cookingRecipe.id)
   }
@@ -377,6 +383,16 @@ export function Recipes() {
           {selectedRecipe && (
             <>
               <DialogHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  {selectedRecipe.source ? (
+                    <Badge className="bg-black/70">{selectedRecipe.source}</Badge>
+                  ) : (
+                    <Badge variant="outline" className="border-green-500 text-green-600">
+                      <BookOpen className="mr-1 h-3 w-3" />
+                      Original Recipe
+                    </Badge>
+                  )}
+                </div>
                 <DialogTitle className="text-2xl">{selectedRecipe.name}</DialogTitle>
                 <DialogDescription className="flex items-center gap-4">
                   <span className="flex items-center gap-1">
@@ -462,6 +478,23 @@ export function Recipes() {
                         <li key={i}>• {item.quantity} {item.unit} {item.name}</li>
                       ))}
                     </ul>
+                  </div>
+                )}
+
+                {/* Source Link */}
+                {selectedRecipe.source && selectedRecipe.sourceUrl ? (
+                  <div className="pt-2">
+                    <Button variant="link" className="p-0 h-auto" asChild>
+                      <a href={selectedRecipe.sourceUrl} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="mr-1 h-4 w-4" />
+                        View original on {selectedRecipe.source}
+                      </a>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="pt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <BookOpen className="h-4 w-4" />
+                    <span>This is your original recipe</span>
                   </div>
                 )}
               </div>
@@ -733,6 +766,28 @@ export function Recipes() {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Success/Notification Dialog */}
+      <Dialog open={notification.open} onOpenChange={(open) => setNotification({ ...notification, open })}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                <PartyPopper className="h-8 w-8 text-green-600" />
+              </div>
+              <DialogTitle className="text-xl">{notification.title}</DialogTitle>
+              <DialogDescription className="mt-2 text-center">
+                {notification.message}
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center mt-4">
+            <Button onClick={() => setNotification({ ...notification, open: false })}>
+              Awesome!
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

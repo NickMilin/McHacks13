@@ -11,6 +11,7 @@ export const mockPantryItems = [
   { id: 8, name: 'Tomatoes', quantity: 4, unit: 'count', category: 'vegetable', expiryDate: '2026-01-21' },
   { id: 9, name: 'Pasta', quantity: 2, unit: 'boxes', category: 'grain', expiryDate: '2026-08-01' },
   { id: 10, name: 'Cheese', quantity: 8, unit: 'oz', category: 'dairy', expiryDate: '2026-02-15' },
+  { id: 11, name: 'Soy Sauce', quantity: 1, unit: 'bottle', category: 'condiment', expiryDate: '2027-06-01' },
 ];
 
 export const mockRecipes = [
@@ -18,6 +19,8 @@ export const mockRecipes = [
     id: 1,
     name: 'Chicken Stir Fry',
     description: 'A quick and healthy stir fry with tender chicken and fresh vegetables.',
+    source: null,
+    sourceUrl: null,
     ingredients: [
       { name: 'Chicken Breast', quantity: '1', unit: 'lb', preparation_notes: 'cut into cubes', group: 'Main' },
       { name: 'Broccoli', quantity: '0.5', unit: 'head', preparation_notes: 'cut into florets', group: 'Main' },
@@ -40,6 +43,8 @@ export const mockRecipes = [
     id: 2,
     name: 'Pasta Primavera',
     description: 'A light and fresh pasta dish loaded with garden vegetables.',
+    source: 'AllRecipes',
+    sourceUrl: 'https://allrecipes.com/recipe/pasta-primavera',
     ingredients: [
       { name: 'Pasta', quantity: '1', unit: 'box', preparation_notes: 'penne or fusilli', group: 'Main' },
       { name: 'Tomatoes', quantity: '2', unit: 'count', preparation_notes: 'diced', group: 'Vegetables' },
@@ -63,6 +68,8 @@ export const mockRecipes = [
     id: 3,
     name: 'Scrambled Eggs',
     description: 'Creamy, fluffy scrambled eggs perfect for breakfast.',
+    source: null,
+    sourceUrl: null,
     ingredients: [
       { name: 'Eggs', quantity: '4', unit: 'count', preparation_notes: 'room temperature', group: 'Main' },
       { name: 'Milk', quantity: '0.25', unit: 'cup', group: 'Main' },
