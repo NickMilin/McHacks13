@@ -157,7 +157,7 @@ if __name__ == "__main__":
         print("API Key loaded:", "Yes" if gumloop_api_key else "No")
         
         # Configuration
-        IMAGE_PATH = "receipt2.jpg"  
+        IMAGE_PATH = "receipt.jpg"  
         USER_ID = "ACFRzCqhciYjfQxd77vMlTxTMD22"
         SAVED_ITEM_ID = "vezQxjRcmZY43i7KWchyKw"
         
