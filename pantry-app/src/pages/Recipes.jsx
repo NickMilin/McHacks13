@@ -11,6 +11,7 @@ import { Plus, Trash2, Clock, Users, ChefHat, ShoppingCart, X, Check, ArrowLeft,
 import { useAuth } from '@/contexts/AuthContext'
 import { pantryFirebase } from '@/lib/pantryFirebase'
 import { recipesFirebase } from '@/lib/recipesFirebase'
+import { shoppingListFirebase } from '@/lib/shoppingListFirebase'
 import { mockSubstitutes } from '@/lib/mockData'
 
 export function Recipes() {
@@ -196,20 +197,54 @@ export function Recipes() {
   }
 
   // Finish cooking
-  const finishCooking = () => {
-    const recipeName = cookingRecipe.name
+  const finishCooking = async () => {
+    const recipe = cookingRecipe
+    const recipeName = recipe.name
     closeCookingMode()
-    setNotification({
-      open: true,
-      title: 'Cooking Complete!',
-      message: `You've finished cooking "${recipeName}"! Ingredients have been removed from your pantry.`
-    })
-    // TODO: Call Flask API to update pantry
-    // recipeApi.cookRecipe(cookingRecipe.id)
+    
+    try {
+      // Remove or reduce ingredients from pantry
+      for (const ingredient of recipe.ingredients) {
+        const pantryItem = pantryItems.find(
+          item => item.name.toLowerCase().includes(ingredient.name.toLowerCase()) ||
+                  ingredient.name.toLowerCase().includes(item.name.toLowerCase())
+        )
+        
+        if (pantryItem) {
+          const usedQty = parseFloat(ingredient.quantity) || 1
+          const remainingQty = (pantryItem.quantity || 0) - usedQty
+          
+          if (remainingQty <= 0) {
+            // Remove item completely
+            await pantryFirebase.deleteItem(user.uid, pantryItem.id)
+            setPantryItems(prev => prev.filter(item => item.id !== pantryItem.id))
+          } else {
+            // Reduce quantity
+            await pantryFirebase.updateItem(user.uid, pantryItem.id, { quantity: remainingQty })
+            setPantryItems(prev => prev.map(item => 
+              item.id === pantryItem.id ? { ...item, quantity: remainingQty } : item
+            ))
+          }
+        }
+      }
+      
+      setNotification({
+        open: true,
+        title: 'Cooking Complete!',
+        message: `You've finished cooking "${recipeName}"! Ingredients have been removed from your pantry.`
+      })
+    } catch (err) {
+      console.error('Error updating pantry after cooking:', err)
+      setNotification({
+        open: true,
+        title: 'Cooking Complete!',
+        message: `You've finished cooking "${recipeName}"! Note: There was an issue updating your pantry.`
+      })
+    }
   }
 
   // Add missing ingredients to shopping list
-  const handleAddToShoppingList = (recipe) => {
+  const handleAddToShoppingList = async (recipe) => {
     // Only add items that are marked as "need" or not yet selected
     const missingIngredients = getMissingIngredients(recipe).filter(ingredient => {
       const key = `${recipe.id}-${ingredient.name}`
@@ -225,22 +260,89 @@ export function Recipes() {
       return
     }
     
-    // TODO: Call Flask API to add items to shopping list
-    // shoppingListApi.addItems(missingIngredients)
-    setNotification({
-      open: true,
-      title: 'Added to Shopping List!',
-      message: `${missingIngredients.length} missing ingredient${missingIngredients.length > 1 ? 's' : ''} for "${recipe.name}" have been added to your shopping list.`
-    })
+    try {
+      // Get current shopping list
+      const currentList = await shoppingListFirebase.getShoppingList(user.uid)
+      const existingItems = currentList.items || []
+      
+      // Create new items from missing ingredients
+      const newItems = missingIngredients.map(ingredient => ({
+        id: `${recipe.name}-${ingredient.name}-${Date.now()}`,
+        name: ingredient.name,
+        quantity: ingredient.quantity || 1,
+        unit: ingredient.unit || '',
+        recipes: [recipe.name],
+        category: 'other',
+        isCustom: true
+      }))
+      
+      // Merge with existing items (avoid duplicates by name)
+      const existingNames = existingItems.map(item => item.name.toLowerCase())
+      const itemsToAdd = newItems.filter(item => !existingNames.includes(item.name.toLowerCase()))
+      
+      // Update shopping list in Firebase
+      await shoppingListFirebase.updateShoppingList(user.uid, {
+        items: [...existingItems, ...itemsToAdd],
+        checkedItems: currentList.checkedItems || [],
+        selectedRecipes: currentList.selectedRecipes || []
+      })
+      
+      setNotification({
+        open: true,
+        title: 'Added to Shopping List!',
+        message: `${itemsToAdd.length} missing ingredient${itemsToAdd.length > 1 ? 's' : ''} for "${recipe.name}" have been added to your shopping list.`
+      })
+    } catch (err) {
+      console.error('Error adding to shopping list:', err)
+      setNotification({
+        open: true,
+        title: 'Error',
+        message: 'Failed to add items to shopping list. Please try again.'
+      })
+    }
   }
 
   // Handle ingredient selection (have/need)
-  const handleIngredientSelection = (recipeId, ingredientName, selection) => {
+  const handleIngredientSelection = async (recipeId, ingredientName, ingredient, selection) => {
     const key = `${recipeId}-${ingredientName}`
     setIngredientSelections(prev => ({
       ...prev,
       [key]: selection
     }))
+    
+    // If marked as "have", add the ingredient to pantry
+    if (selection === 'have') {
+      try {
+        const newItem = await pantryFirebase.addItem(user.uid, {
+          name: ingredientName,
+          quantity: ingredient.quantity || 1,
+          unit: ingredient.unit || '',
+          category: 'other'
+        })
+        
+        // Update local pantry state
+        setPantryItems(prev => [{ id: newItem.id, ...newItem }, ...prev])
+        
+        setNotification({
+          open: true,
+          title: 'Added to Pantry',
+          message: `${ingredientName} has been added to your pantry.`
+        })
+      } catch (err) {
+        console.error('Error adding to pantry:', err)
+        // Revert the selection on error
+        setIngredientSelections(prev => {
+          const updated = { ...prev }
+          delete updated[key]
+          return updated
+        })
+        setNotification({
+          open: true,
+          title: 'Error',
+          message: 'Failed to add item to pantry. Please try again.'
+        })
+      }
+    }
   }
 
   // Reset ingredient selections when dialog closes
@@ -533,7 +635,7 @@ export function Recipes() {
                               // Not in pantry and no selection yet - show both buttons
                               <div className="flex items-center gap-1">
                                 <button
-                                  onClick={() => handleIngredientSelection(selectedRecipe.id, ingredient.name, 'have')}
+                                  onClick={() => handleIngredientSelection(selectedRecipe.id, ingredient.name, ingredient, 'have')}
                                   className="p-0.5 rounded hover:bg-green-100 transition-colors group relative"
                                   title="I have this"
                                 >
@@ -543,7 +645,7 @@ export function Recipes() {
                                   </span>
                                 </button>
                                 <button
-                                  onClick={() => handleIngredientSelection(selectedRecipe.id, ingredient.name, 'need')}
+                                  onClick={() => handleIngredientSelection(selectedRecipe.id, ingredient.name, ingredient, 'need')}
                                   className="p-0.5 rounded hover:bg-red-100 transition-colors group relative"
                                   title="I need this"
                                 >
