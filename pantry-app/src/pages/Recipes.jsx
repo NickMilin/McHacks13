@@ -27,6 +27,7 @@ export function Recipes() {
   const [cookingRecipe, setCookingRecipe] = useState(null)
   const [currentStep, setCurrentStep] = useState(0)
   const [notification, setNotification] = useState({ open: false, title: '', message: '' })
+  const [ingredientSelections, setIngredientSelections] = useState({}) // Track user selections for missing ingredients
   
   const [newRecipe, setNewRecipe] = useState({
     name: '',
@@ -209,7 +210,21 @@ export function Recipes() {
 
   // Add missing ingredients to shopping list
   const handleAddToShoppingList = (recipe) => {
-    const missingIngredients = getMissingIngredients(recipe)
+    // Only add items that are marked as "need" or not yet selected
+    const missingIngredients = getMissingIngredients(recipe).filter(ingredient => {
+      const key = `${recipe.id}-${ingredient.name}`
+      return ingredientSelections[key] !== 'have' // Exclude items marked as "have"
+    })
+    
+    if (missingIngredients.length === 0) {
+      setNotification({
+        open: true,
+        title: 'No Items to Add',
+        message: 'All missing ingredients have been marked as "already have".'
+      })
+      return
+    }
+    
     // TODO: Call Flask API to add items to shopping list
     // shoppingListApi.addItems(missingIngredients)
     setNotification({
@@ -217,6 +232,22 @@ export function Recipes() {
       title: 'Added to Shopping List!',
       message: `${missingIngredients.length} missing ingredient${missingIngredients.length > 1 ? 's' : ''} for "${recipe.name}" have been added to your shopping list.`
     })
+  }
+
+  // Handle ingredient selection (have/need)
+  const handleIngredientSelection = (recipeId, ingredientName, selection) => {
+    const key = `${recipeId}-${ingredientName}`
+    setIngredientSelections(prev => ({
+      ...prev,
+      [key]: selection
+    }))
+  }
+
+  // Reset ingredient selections when dialog closes
+  const handleCloseRecipeDialog = () => {
+    setSelectedRecipe(null)
+    // Optionally reset selections when closing
+    // setIngredientSelections({})
   }
 
   // Get substitutes for an ingredient
@@ -486,20 +517,48 @@ export function Recipes() {
                         item => item.name.toLowerCase().includes(ingredient.name.toLowerCase())
                       )
                       const pantrySubstitutes = getPantrySubstitutes(ingredient.name)
+                      const selectionKey = `${selectedRecipe.id}-${ingredient.name}`
+                      const userSelection = ingredientSelections[selectionKey]
                       
                       return (
                         <li key={index} className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            {inPantry ? (
-                              <Check className="h-4 w-4 text-green-500" />
-                            ) : (
+                            {inPantry || userSelection === 'have' ? (
+                              // In pantry or marked as "have" - just bullet point
+                              <span className="w-4 h-4 flex items-center justify-center text-slate-400">•</span>
+                            ) : userSelection === 'need' ? (
+                              // Marked as "need" - show red X
                               <X className="h-4 w-4 text-red-500" />
+                            ) : (
+                              // Not in pantry and no selection yet - show both buttons
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => handleIngredientSelection(selectedRecipe.id, ingredient.name, 'have')}
+                                  className="p-0.5 rounded hover:bg-green-100 transition-colors group relative"
+                                  title="I have this"
+                                >
+                                  <Check className="h-4 w-4 text-green-500 hover:text-green-600" />
+                                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs bg-slate-800 text-white rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    I have this
+                                  </span>
+                                </button>
+                                <button
+                                  onClick={() => handleIngredientSelection(selectedRecipe.id, ingredient.name, 'need')}
+                                  className="p-0.5 rounded hover:bg-red-100 transition-colors group relative"
+                                  title="I need this"
+                                >
+                                  <X className="h-4 w-4 text-red-500 hover:text-red-600" />
+                                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs bg-slate-800 text-white rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    I need this
+                                  </span>
+                                </button>
+                              </div>
                             )}
-                            <span>
+                            <span className={userSelection === 'have' || inPantry ? 'text-slate-400' : ''}>
                               {ingredient.quantity} {ingredient.unit} {ingredient.name}
                             </span>
                           </div>
-                          {!inPantry && pantrySubstitutes.length > 0 && (
+                          {!inPantry && userSelection !== 'have' && pantrySubstitutes.length > 0 && (
                             <Button
                               variant="link"
                               size="sm"
@@ -515,7 +574,10 @@ export function Recipes() {
                   </ul>
                   
                   {/* Add missing ingredients to shopping list button */}
-                  {getMissingIngredients(selectedRecipe).length > 0 && (
+                  {getMissingIngredients(selectedRecipe).filter(ing => {
+                    const key = `${selectedRecipe.id}-${ing.name}`
+                    return ingredientSelections[key] !== 'have'
+                  }).length > 0 && (
                     <Button 
                       className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white"
                       onClick={() => handleAddToShoppingList(selectedRecipe)}
