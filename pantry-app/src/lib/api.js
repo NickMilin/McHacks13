@@ -14,10 +14,20 @@ async function apiCall(endpoint, options = {}) {
 
   try {
     const response = await fetch(url, config);
+    const data = await response.json();
+    
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
+      // Check if backend returned an error message
+      const errorMessage = data?.error || `API Error: ${response.status}`;
+      throw new Error(errorMessage);
     }
-    return await response.json();
+    
+    // Check if backend response indicates failure
+    if (data.success === false) {
+      throw new Error(data.error || 'Request failed');
+    }
+    
+    return data;
   } catch (error) {
     console.error('API call failed:', error);
     throw error;
@@ -27,69 +37,120 @@ async function apiCall(endpoint, options = {}) {
 // Pantry API
 export const pantryApi = {
   // Get all pantry items
-  getItems: () => apiCall('/pantry'),
+  getItems: async () => {
+    const response = await apiCall('/pantry');
+    return response.items || [];
+  },
   
   // Add item to pantry
-  addItem: (item) => apiCall('/pantry', {
-    method: 'POST',
-    body: JSON.stringify(item),
-  }),
+  addItem: async (item) => {
+    const response = await apiCall('/pantry', {
+      method: 'POST',
+      body: JSON.stringify(item),
+    });
+    return response.item;
+  },
   
   // Update pantry item
-  updateItem: (id, item) => apiCall(`/pantry/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(item),
-  }),
+  updateItem: async (id, item) => {
+    const response = await apiCall(`/pantry/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(item),
+    });
+    return response.item;
+  },
   
   // Delete pantry item
-  deleteItem: (id) => apiCall(`/pantry/${id}`, {
-    method: 'DELETE',
-  }),
+  deleteItem: async (id) => {
+    const response = await apiCall(`/pantry/${id}`, {
+      method: 'DELETE',
+    });
+    return response.item;
+  },
   
   // Upload receipt image for OCR
-  uploadReceipt: (formData) => apiCall('/pantry/receipt', {
-    method: 'POST',
-    headers: {}, // Let browser set content-type for FormData
-    body: formData,
-  }),
+  uploadReceipt: async (formData) => {
+    const response = await apiCall('/pantry/receipt', {
+      method: 'POST',
+      headers: {}, // Let browser set content-type for FormData
+      body: formData,
+    });
+    return response.items || [];
+  },
 };
 
 // Recipe API
 export const recipeApi = {
   // Get all recipes
-  getRecipes: () => apiCall('/recipes'),
+  getRecipes: async () => {
+    const response = await apiCall('/recipes');
+    return response.recipes || [];
+  },
   
   // Add new recipe
-  addRecipe: (recipe) => apiCall('/recipes', {
-    method: 'POST',
-    body: JSON.stringify(recipe),
-  }),
+  addRecipe: async (recipe) => {
+    const response = await apiCall('/recipes', {
+      method: 'POST',
+      body: JSON.stringify(recipe),
+    });
+    return response.recipe;
+  },
   
   // Delete recipe
-  deleteRecipe: (id) => apiCall(`/recipes/${id}`, {
-    method: 'DELETE',
-  }),
+  deleteRecipe: async (id) => {
+    const response = await apiCall(`/recipes/${id}`, {
+      method: 'DELETE',
+    });
+    return response.recipe;
+  },
   
   // Cook recipe (removes ingredients from pantry)
-  cookRecipe: (id) => apiCall(`/recipes/${id}/cook`, {
-    method: 'POST',
-  }),
+  cookRecipe: async (id) => {
+    const response = await apiCall(`/recipes/${id}/cook`, {
+      method: 'POST',
+    });
+    return response;
+  },
   
   // Search recipes online by dish name
-  searchOnline: (query) => apiCall(`/recipes/search?q=${encodeURIComponent(query)}`),
+  searchOnline: async (query) => {
+    const response = await apiCall(`/recipes/search?q=${encodeURIComponent(query)}`);
+    return response.recipes || [];
+  },
+  
+  // Get recipe from URL
+  getFromUrl: async (url) => {
+    const response = await apiCall('/recipes/from-url', {
+      method: 'POST',
+      body: JSON.stringify({ url }),
+    });
+    return response.recipe;
+  },
   
   // Get recipe suggestions based on pantry
-  getSuggestions: () => apiCall('/recipes/suggestions'),
+  getSuggestions: async () => {
+    const response = await apiCall('/recipes/suggestions');
+    return response.recipes || [];
+  },
   
   // Get shopping list for a recipe
-  getShoppingList: (recipeId) => apiCall(`/recipes/${recipeId}/shopping-list`),
+  getShoppingList: async (recipeId) => {
+    const response = await apiCall(`/recipes/${recipeId}/shopping-list`);
+    return response.missing_ingredients || [];
+  },
   
   // Get ingredient substitutes
-  getSubstitutes: (ingredient) => apiCall(`/ingredients/${encodeURIComponent(ingredient)}/substitutes`),
+  getSubstitutes: async (ingredient) => {
+    const response = await apiCall(`/ingredients/${encodeURIComponent(ingredient)}/substitutes`);
+    return response.substitutes || [];
+  },
 };
 
 // Health Stats API
 export const statsApi = {
   // Get health statistics
-  getStats: () => apiCall('/stats'),
+  getStats: async () => {
+    const response = await apiCall('/stats');
+    return response.stats || {};
+  },
 };
