@@ -9,10 +9,16 @@ from PIL import Image
 load_dotenv(override=True)
 gumloop_api_key = os.getenv('GUMLOOP')
 
+# Allow the module to be imported even without API key
 if not gumloop_api_key:
-    raise ValueError("GUMLOOP API key not found in environment variables")
+    print("Warning: GUMLOOP API key not found in environment variables")
+    gumloop_api_key = None
 
 def start_pipeline(pantry_csv, user_id, saved_item_id):    
+    # Check if API key is available
+    if not gumloop_api_key:
+        raise ValueError("GUMLOOP API key not configured")
+    
     # Prepare the API request for starting a pipeline with file
     url = "https://api.gumloop.com/api/v1/start_pipeline"
     
