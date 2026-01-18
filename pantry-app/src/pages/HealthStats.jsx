@@ -1,28 +1,31 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend } from 'recharts'
-import { mockPantryItems, categoryColors, categoryLabels } from '@/lib/mockData'
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { usePantry } from '@/contexts/PantryContext'
+import { categoryColors, categoryLabels } from '@/lib/mockData'
 import { TrendingUp, Apple, Wheat, Drumstick, Milk, Droplet } from 'lucide-react'
 
 export function HealthStats() {
+  const { pantryItems } = usePantry()
+
   // Calculate category distribution
   const categoryStats = useMemo(() => {
     const counts = {}
-    mockPantryItems.forEach(item => {
+    pantryItems.forEach(item => {
       counts[item.category] = (counts[item.category] || 0) + 1
     })
-    
+
     return Object.entries(counts).map(([category, count]) => ({
       name: categoryLabels[category] || category,
       value: count,
       category,
       color: categoryColors[category] || categoryColors.other
     }))
-  }, [])
+  }, [pantryItems])
 
   // Calculate percentages
-  const totalItems = mockPantryItems.length
+  const totalItems = pantryItems.length
   const categoryPercentages = categoryStats.map(stat => ({
     ...stat,
     percentage: Math.round((stat.value / totalItems) * 100)
@@ -150,12 +153,12 @@ export function HealthStats() {
                     paddingAngle={2}
                     dataKey="value"
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    isAnimationActive={false}
                   >
                     {categoryStats.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
+                  <Tooltip />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -175,7 +178,8 @@ export function HealthStats() {
                 <BarChart data={categoryStats} layout="vertical">
                   <XAxis type="number" />
                   <YAxis type="category" dataKey="name" width={80} />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]} isAnimationActive={false}>
+                  <Tooltip />
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                     {categoryStats.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}

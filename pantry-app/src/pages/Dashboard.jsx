@@ -1,25 +1,26 @@
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { 
-  ShoppingBasket, 
-  Upload, 
-  BarChart3, 
-  BookOpen, 
-  Search, 
+import {
+  ShoppingBasket,
+  Upload,
+  BarChart3,
+  BookOpen,
+  Search,
   Lightbulb,
   AlertCircle
 } from 'lucide-react'
-import { mockPantryItems } from '@/lib/mockData'
+import { usePantry } from '@/contexts/PantryContext'
 
 export function Dashboard() {
+  const { pantryItems, getExpiringItems } = usePantry()
+
   // Calculate expiring soon items (within 3 days)
-  const today = new Date()
-  const threeDaysFromNow = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000)
-  
-  const expiringItems = mockPantryItems.filter(item => {
+  const expiringItems = pantryItems.filter(item => {
+    const today = new Date()
     const expiryDate = new Date(item.expiryDate)
-    return expiryDate <= threeDaysFromNow && expiryDate >= today
+    const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
+    return diffDays <= 3 && diffDays >= 0
   })
 
   const quickActions = [
@@ -34,7 +35,7 @@ export function Dashboard() {
       to: '/pantry', 
       icon: ShoppingBasket, 
       title: 'View Pantry', 
-      description: `${mockPantryItems.length} items in stock`,
+      description: `${pantryItems.length} items in stock`,
       color: 'bg-green-500'
     },
     { 
@@ -65,13 +66,13 @@ export function Dashboard() {
 
       {/* Expiring Soon Alert */}
       {expiringItems.length > 0 && (
-        <Card>
+        <Card className="border-orange-200 bg-orange-50">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-orange-500" />
+            <CardTitle className="flex items-center gap-2 text-orange-800">
+              <AlertCircle className="h-5 w-5" />
               Expiring Soon
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-orange-700">
               These items will expire within 3 days
             </CardDescription>
           </CardHeader>
@@ -80,15 +81,15 @@ export function Dashboard() {
               {expiringItems.map(item => (
                 <div 
                   key={item.id} 
-                  className="rounded-full bg-orange-500/10 px-3 py-1 text-sm text-orange-500"
+                  className="rounded-full bg-orange-100 px-3 py-1 text-sm text-orange-800"
                 >
                   {item.name} - {new Date(item.expiryDate).toLocaleDateString()}
                 </div>
               ))}
             </div>
             <Link to="/suggestions">
-              <Button variant="outline" className="mt-4">
-                <Lightbulb className="mr-2 h-4 w-4 text-yellow-500" />
+              <Button variant="outline" className="mt-4 border-orange-300 text-orange-800 hover:bg-orange-100">
+                <Lightbulb className="mr-2 h-4 w-4" />
                 Get Recipe Suggestions
               </Button>
             </Link>
@@ -121,7 +122,7 @@ export function Dashboard() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total Items</CardDescription>
-            <CardTitle className="text-4xl">{mockPantryItems.length}</CardTitle>
+            <CardTitle className="text-4xl">{pantryItems.length}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground">in your pantry</p>
@@ -132,7 +133,7 @@ export function Dashboard() {
           <CardHeader className="pb-2">
             <CardDescription>Categories</CardDescription>
             <CardTitle className="text-4xl">
-              {new Set(mockPantryItems.map(i => i.category)).size}
+              {new Set(pantryItems.map(i => i.category)).size}
             </CardTitle>
           </CardHeader>
           <CardContent>
