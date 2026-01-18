@@ -228,18 +228,22 @@ def get_suggestions():
         recipes = []
         for i in range(1, 4):
             output_key = f'output{i}'
+            link_key = f'output{i}_link'
             recipe_str = outputs.get(output_key)
+            recipe_link = outputs.get(link_key, '')
             if recipe_str:
                 try:
                     recipe_data = json.loads(recipe_str)
                     recipe_data['id'] = i
                     recipe_data['source'] = 'AI Suggested'
+                    recipe_data['sourceUrl'] = recipe_link
                     recipes.append(recipe_data)
                 except json.JSONDecodeError:
                     # If it's already a dict, use it directly
                     if isinstance(recipe_str, dict):
                         recipe_str['id'] = i
                         recipe_str['source'] = 'AI Suggested'
+                        recipe_str['sourceUrl'] = recipe_link
                         recipes.append(recipe_str)
         
         return jsonify({

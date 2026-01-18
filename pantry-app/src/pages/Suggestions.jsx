@@ -227,28 +227,28 @@ export function Suggestions() {
     try {
       const recipeData = {
         name: recipe.name,
-        description: recipe.description || '',
-        source: recipe.source || 'AI Suggested',
-        sourceUrl: recipe.sourceUrl || '',
+        description: recipe.description || "",
+        source: recipe.source || "AI Suggested",
+        sourceUrl: recipe.sourceUrl || "",
         prepTime: recipe.prepTime || 0,
         cookTime: recipe.cookTime || 0,
         servings: recipe.servings || 4,
         ingredients: recipe.ingredients || [],
-        instructions: recipe.instructions || []
-      }
-      await recipesFirebase.addRecipe(user.uid, recipeData)
+        instructions: recipe.instructions || [],
+      };
+      await recipesFirebase.addRecipe(user.uid, recipeData);
       setNotification({
         open: true,
         title: "Recipe Saved!",
         message: `"${recipe.name}" has been added to your recipe library.`,
-      })
+      });
     } catch (err) {
-      console.error('Error saving recipe:', err)
+      console.error("Error saving recipe:", err);
       setNotification({
         open: true,
         title: "Save Failed",
-        message: 'Failed to save recipe to your library.',
-      })
+        message: "Failed to save recipe to your library.",
+      });
     }
   };
 
@@ -305,6 +305,7 @@ export function Suggestions() {
           name: recipe.recipe_title || "AI Suggested Recipe",
           description: recipe.description || "",
           source: recipe.source || "AI Suggested",
+          sourceUrl: recipe.sourceUrl || "",
           prepTime: recipe.prep_time_minutes || 15,
           cookTime: recipe.cook_time_minutes || 30,
           servings: recipe.servings || 4,
@@ -665,7 +666,8 @@ export function Suggestions() {
                       className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white"
                       onClick={() => handleAddToShoppingList(selectedRecipe)}
                     >
-                      🛒 Add missing items to shopping list
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      Add missing items to shopping list
                     </Button>
                   )}
                 </div>
@@ -694,23 +696,26 @@ export function Suggestions() {
                 </div>
 
                 {/* Source Link */}
-                {selectedRecipe.source && selectedRecipe.sourceUrl ? (
-                  <div className="pt-2">
-                    <Button variant="link" className="p-0 h-auto" asChild>
-                      <a
-                        href={selectedRecipe.sourceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <ExternalLink className="mr-1 h-4 w-4" />
-                        View original on {selectedRecipe.source}
-                      </a>
-                    </Button>
+                {selectedRecipe.sourceUrl ? (
+                  <div className="pt-4">
+                    <a
+                      href={selectedRecipe.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      <span className="text-sm font-medium">
+                        View original recipe
+                      </span>
+                    </a>
                   </div>
                 ) : (
-                  <div className="pt-2 flex items-center gap-2 text-sm text-muted-foreground">
-                    <BookOpen className="h-4 w-4" />
-                    <span>This is your original recipe</span>
+                  <div className="pt-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20 w-fit">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium text-primary">
+                      AI-generated recipe
+                    </span>
                   </div>
                 )}
               </div>
@@ -725,8 +730,8 @@ export function Suggestions() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    handleSaveRecipe(selectedRecipe)
-                    setSelectedRecipe(null)
+                    handleSaveRecipe(selectedRecipe);
+                    setSelectedRecipe(null);
                   }}
                 >
                   <BookOpen className="mr-2 h-4 w-4" />

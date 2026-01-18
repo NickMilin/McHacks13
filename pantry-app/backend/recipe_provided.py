@@ -106,7 +106,7 @@ if __name__ == "__main__":
         print("API Key loaded:", "Yes" if gumloop_api_key else "No")
         
         # Configuration
-        USER_ID = "ACFRzCqhciYjfQxd77vMlTxTMD22"
+        USER_ID = "JcgVcoEzxiffG9dCJJsadUqXUTS2"
         SAVED_ITEM_ID = "hqBPoCuJVrK2FTJ4ejFUqf"
         RECIPE_LINK = "https://www.theanthonykitchen.com/bbq-chicken-sandwich-recipe/"  # Example recipe link
         
