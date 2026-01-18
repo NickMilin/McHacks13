@@ -116,15 +116,6 @@ export function Pantry() {
     }
   }
 
-  const exportCSV = async () => {
-    if (!user) return
-    try {
-      await pantryFirebase.exportToCSV(user.uid)
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
   return (
     <div className="p-8 space-y-4">
       <div className="flex justify-between items-center">
@@ -135,20 +126,13 @@ export function Pantry() {
         </Button>
       </div>
       
-      <div className="p-4 bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg space-y-2 text-slate-200">
-        <p><strong className="text-emerald-400">Authenticated:</strong> {isAuthenticated ? 'Yes' : 'No'}</p>
-        <p><strong className="text-emerald-400">User:</strong> {user?.email || 'None'}</p>
-        <p><strong className="text-emerald-400">Items:</strong> {pantryItems.length}</p>
-        {error && <p className="text-red-400"><strong>Error:</strong> {error}</p>}
-      </div>
+      {error && (
+        <div className="p-4 bg-red-900/20 backdrop-blur-sm border border-red-700 rounded-lg">
+          <p className="text-red-400"><strong>Error:</strong> {error}</p>
+        </div>
+      )}
 
-      <div className="space-x-2">
-        <Button onClick={exportCSV} disabled={!user} variant="outline">
-          Export CSV
-        </Button>
-      </div>
-
-      <div className="space-y-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {pantryItems.map(item => (
           <div key={item.id} className="p-4 bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg flex justify-between items-start hover:bg-slate-800/70 transition-colors">
             <div className="flex-1">
@@ -184,7 +168,7 @@ export function Pantry() {
           </div>
         ))}
         {pantryItems.length === 0 && (
-          <p className="text-slate-400 text-center py-8">
+          <p className="text-slate-400 text-center py-8 col-span-2">
             No items in pantry. Click "Add Item" to get started!
           </p>
         )}
