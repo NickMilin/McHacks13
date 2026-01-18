@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Lightbulb, Clock, Users, ChefHat, Sparkles, AlertCircle, Check, X, ShoppingCart, Flame, ArrowLeft, ArrowRight, PartyPopper, ExternalLink, BookOpen } from 'lucide-react'
+import { Lightbulb, Clock, Users, ChefHat, Sparkles, AlertCircle, Check, X, ShoppingCart, Flame, ArrowLeft, ArrowRight, PartyPopper, ExternalLink, BookOpen, Download } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { pantryFirebase } from '@/lib/pantryFirebase'
 import { mockRecipes } from '@/lib/mockData'
@@ -181,20 +181,80 @@ export function Suggestions() {
     })
   }
 
+  // Export pantry to CSV for suggestions
+  const handleGenerateSuggestions = async () => {
+    if (!user || pantryItems.length === 0) {
+      setNotification({
+        open: true,
+        title: 'Cannot Generate',
+        message: 'Your pantry is empty. Add items first!'
+      })
+      return
+    }
+    try {
+      await pantryFirebase.exportToCSV(user.uid)
+      setNotification({
+        open: true,
+        title: 'Pantry Exported!',
+        message: 'Your pantry has been exported to CSV. The file should start downloading shortly.'
+      })
+    } catch (err) {
+      setNotification({
+        open: true,
+        title: 'Export Failed',
+        message: err.message
+      })
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Recipe Suggestions</h1>
-        <p className="text-muted-foreground">
-          Personalized recommendations based on your pantry
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Recipe Suggestions</h1>
+          <p className="text-muted-foreground">
+            Personalized recommendations based on your pantry
+          </p>
+        </div>
+        <Button 
+          onClick={handleGenerateSuggestions}
+          disabled={loading || pantryItems.length === 0}
+          className="gap-2"
+        >
+          <Download className="h-4 w-4" />
+          Generate Suggestions
+        </Button>
       </div>
 
       {error && (
         <Card className="border-red-200 bg-red-50">
           <CardContent className="pt-6">
             <p className="text-sm text-red-800">{error}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {notification.open && (
+        <Card className={notification.title.includes('Failed') ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}>
+          <CardContent className="pt-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className={notification.title.includes('Failed') ? 'font-semibold text-red-800' : 'font-semibold text-green-800'}>
+                  {notification.title}
+                </p>
+                <p className={notification.title.includes('Failed') ? 'text-sm text-red-700 mt-1' : 'text-sm text-green-700 mt-1'}>
+                  {notification.message}
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setNotification({ ...notification, open: false })}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
