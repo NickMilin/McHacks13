@@ -482,6 +482,17 @@ export function Recipes() {
                       )
                     })}
                   </ul>
+                  
+                  {/* Add missing ingredients to shopping list button */}
+                  {getMissingIngredients(selectedRecipe).length > 0 && (
+                    <Button 
+                      className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                      onClick={() => handleAddToShoppingList(selectedRecipe)}
+                    >
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      Add missing items to shopping list
+                    </Button>
+                  )}
                 </div>
                 
                 {/* Instructions */}
@@ -504,29 +515,6 @@ export function Recipes() {
                     </p>
                   )}
                 </div>
-                
-                {/* Shopping List */}
-                {getMissingIngredients(selectedRecipe).length > 0 && (
-                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                    <h3 className="font-semibold text-orange-500 flex items-center gap-2 mb-2">
-                      <ShoppingCart className="h-4 w-4" />
-                      Missing Ingredients
-                    </h3>
-                    <ul className="space-y-1 text-sm text-orange-500 mb-3">
-                      {getMissingIngredients(selectedRecipe).map((item, i) => (
-                        <li key={i}>• {item.quantity} {item.unit} {item.name}</li>
-                      ))}
-                    </ul>
-                    <Button 
-                      size="sm" 
-                      className="w-full bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-200"
-                      onClick={() => handleAddToShoppingList(selectedRecipe)}
-                    >
-                      <ShoppingCart className="mr-2 h-4 w-4" />
-                      Add to Shopping List
-                    </Button>
-                  </div>
-                )}
 
                 {/* Source Link */}
                 {selectedRecipe.source && selectedRecipe.sourceUrl ? (

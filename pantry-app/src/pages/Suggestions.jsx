@@ -625,7 +625,8 @@ export function Suggestions() {
                       className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white"
                       onClick={() => handleAddToShoppingList(selectedRecipe)}
                     >
-                      🛒 Add missing items to shopping list
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      Add missing items to shopping list
                     </Button>
                   )}
                 </div>
