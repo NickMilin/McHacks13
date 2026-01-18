@@ -85,8 +85,8 @@ export function Dashboard() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">Welcome to PantryPal 👋</h1>
-        <p className="text-muted-foreground mt-2">
-          Manage your pantry, discover recipes, and reduce food waste.
+        <p className="text-white mt-2">
+          Manage your pantry, get personalized recipe suggestions, and reduce food waste.
         </p>
       </div>
 

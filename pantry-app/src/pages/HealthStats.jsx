@@ -7,6 +7,28 @@ import { pantryFirebase } from '@/lib/pantryFirebase'
 import { categoryColors, categoryLabels } from '@/lib/mockData'
 import { TrendingUp, Apple, Wheat, Drumstick, Milk, Droplet } from 'lucide-react'
 
+// Custom tooltip component for charts
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-900/95 backdrop-blur-sm border border-slate-700 rounded-lg px-4 py-3 shadow-xl">
+        <p className="text-white font-medium text-sm">{payload[0].payload.name || label}</p>
+        <p className="text-emerald-400 text-sm mt-1">
+          <span className="text-slate-400">Count: </span>
+          <span className="font-semibold">{payload[0].value}</span>
+        </p>
+        {payload[0].payload.percentage !== undefined && (
+          <p className="text-amber-400 text-sm">
+            <span className="text-slate-400">Percentage: </span>
+            <span className="font-semibold">{payload[0].payload.percentage}%</span>
+          </p>
+        )}
+      </div>
+    )
+  }
+  return null
+}
+
 export function HealthStats() {
   const { user } = useAuth()
   const [pantryItems, setPantryItems] = useState([])
@@ -211,7 +233,7 @@ export function HealthStats() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip content={<CustomTooltip />} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -231,7 +253,7 @@ export function HealthStats() {
                 <BarChart data={categoryStats} layout="vertical">
                   <XAxis type="number" />
                   <YAxis type="category" dataKey="name" width={80} />
-                  <Tooltip />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.1)' }} />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                     {categoryStats.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />

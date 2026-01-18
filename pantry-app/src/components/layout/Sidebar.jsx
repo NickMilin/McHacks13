@@ -75,7 +75,8 @@ export function Sidebar() {
                   <img 
                     src={user.photoURL} 
                     alt={user.displayName} 
-                    className="h-8 w-8 rounded-full"
+                    className="h-8 w-8 rounded-full object-cover"
+                    referrerPolicy="no-referrer"
                   />
                 ) : (
                   <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
