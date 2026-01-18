@@ -19,6 +19,76 @@ export function Dashboard() {
   const [pantryItems, setPantryItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  
+  // Typewriter effect state for title
+  const [displayedText, setDisplayedText] = useState('')
+  const [titleComplete, setTitleComplete] = useState(false)
+  const fullText = 'Welcome to PantryPal 👋'
+  
+  // Rotating subtitle typewriter state
+  const [displayedSubtitle, setDisplayedSubtitle] = useState('')
+  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0)
+  const [isDeleting, setIsDeleting] = useState(false)
+  
+  const subtitlePhrases = [
+    'Manage your pantry effortlessly.',
+    'Get personalized recipe suggestions with AI.',
+    'Reduce food waste and save money.',
+    'Track expiring items before they go bad.',
+    'Scan receipts to add items instantly.',
+    'Discover new recipes based on what you have.'
+  ]
+  
+  // Typewriter effect for title (runs once)
+  useEffect(() => {
+    let index = 0
+    const timer = setInterval(() => {
+      if (index < fullText.length) {
+        setDisplayedText(fullText.slice(0, index + 1))
+        index++
+      } else {
+        clearInterval(timer)
+        setTitleComplete(true)
+      }
+    }, 80)
+    
+    return () => clearInterval(timer)
+  }, [])
+  
+  // Rotating typewriter effect for subtitle
+  useEffect(() => {
+    if (!titleComplete) return
+    
+    const currentPhrase = subtitlePhrases[currentPhraseIndex]
+    let timeout
+    
+    if (!isDeleting) {
+      // Typing
+      if (displayedSubtitle.length < currentPhrase.length) {
+        timeout = setTimeout(() => {
+          setDisplayedSubtitle(currentPhrase.slice(0, displayedSubtitle.length + 1))
+        }, 40)
+      } else {
+        // Finished typing, wait then start deleting
+        timeout = setTimeout(() => {
+          setIsDeleting(true)
+        }, 2500)
+      }
+    } else {
+      // Deleting
+      if (displayedSubtitle.length > 0) {
+        timeout = setTimeout(() => {
+          setDisplayedSubtitle(displayedSubtitle.slice(0, -1))
+        }, 25)
+      } else {
+        // Finished deleting, move to next phrase
+        setIsDeleting(false)
+        setCurrentPhraseIndex((prev) => (prev + 1) % subtitlePhrases.length)
+      }
+    }
+    
+    return () => clearTimeout(timeout)
+  }, [titleComplete, displayedSubtitle, isDeleting, currentPhraseIndex])
 
   useEffect(() => {
     const loadItems = async () => {
@@ -84,9 +154,57 @@ export function Dashboard() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Welcome to PantryPal 👋</h1>
-        <p className="text-white mt-2">
-          Manage your pantry, get personalized recipe suggestions, and reduce food waste.
+        <h1 className="text-3xl font-black uppercase tracking-tight relative inline-block">
+          {/* 3D shadow layers */}
+          <span 
+            className="absolute text-slate-900"
+            style={{ transform: 'translate(4px, 4px)', letterSpacing: '-0.02em' }}
+            aria-hidden="true"
+          >
+            {displayedText}
+          </span>
+          <span 
+            className="absolute text-slate-800"
+            style={{ transform: 'translate(3px, 3px)', letterSpacing: '-0.02em' }}
+            aria-hidden="true"
+          >
+            {displayedText}
+          </span>
+          <span 
+            className="absolute text-slate-700"
+            style={{ transform: 'translate(2px, 2px)', letterSpacing: '-0.02em' }}
+            aria-hidden="true"
+          >
+            {displayedText}
+          </span>
+          <span 
+            className="absolute text-slate-600"
+            style={{ transform: 'translate(1px, 1px)', letterSpacing: '-0.02em' }}
+            aria-hidden="true"
+          >
+            {displayedText}
+          </span>
+          {/* Main text */}
+          <span 
+            className="relative"
+            style={{
+              background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 30%, #e2e8f0 60%, #cbd5e1 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              letterSpacing: '-0.02em',
+              filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
+            }}
+          >
+            {displayedText}
+          </span>
+          {displayedText.length < fullText.length && (
+            <span className="animate-pulse text-white">|</span>
+          )}
+        </h1>
+        <p className="text-white/90 mt-3 min-h-[1.5rem] text-lg">
+          {displayedSubtitle}
+          <span className="animate-pulse ml-0.5">|</span>
         </p>
       </div>
 
