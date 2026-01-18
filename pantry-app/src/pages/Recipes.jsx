@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
-import { Plus, Trash2, Clock, Users, ChefHat, ShoppingCart, X, Check } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Plus, Trash2, Clock, Users, ChefHat, ShoppingCart, X, Check, ArrowLeft, ArrowRight, Flame } from 'lucide-react'
 import { mockRecipes, mockPantryItems, mockSubstitutes } from '@/lib/mockData'
 
 export function Recipes() {
@@ -15,6 +16,8 @@ export function Recipes() {
   const [selectedRecipe, setSelectedRecipe] = useState(null)
   const [showShoppingList, setShowShoppingList] = useState(null)
   const [showSubstitutes, setShowSubstitutes] = useState(null)
+  const [cookingRecipe, setCookingRecipe] = useState(null)
+  const [currentStep, setCurrentStep] = useState(0)
   
   const [newRecipe, setNewRecipe] = useState({
     name: '',
@@ -31,7 +34,8 @@ export function Recipes() {
         item => item.name.toLowerCase().includes(ingredient.name.toLowerCase()) ||
                 ingredient.name.toLowerCase().includes(item.name.toLowerCase())
       )
-      return !pantryItem || pantryItem.quantity < ingredient.quantity
+      const qty = parseFloat(ingredient.quantity) || 0
+      return !pantryItem || pantryItem.quantity < qty
     })
   }
 
@@ -42,7 +46,8 @@ export function Recipes() {
         item => item.name.toLowerCase().includes(ingredient.name.toLowerCase()) ||
                 ingredient.name.toLowerCase().includes(item.name.toLowerCase())
       )
-      return pantryItem && pantryItem.quantity >= ingredient.quantity
+      const qty = parseFloat(ingredient.quantity) || 0
+      return pantryItem && pantryItem.quantity >= qty
     })
   }
 
@@ -107,9 +112,35 @@ export function Recipes() {
 
   // Cook recipe (remove ingredients from pantry)
   const handleCookRecipe = (recipe) => {
-    alert(`Cooking "${recipe.name}"! Ingredients would be removed from your pantry.`)
-    // TODO: Call Flask API
-    // recipeApi.cookRecipe(recipe.id)
+    setCookingRecipe(recipe)
+    setCurrentStep(0)
+  }
+
+  // Close cooking mode
+  const closeCookingMode = () => {
+    setCookingRecipe(null)
+    setCurrentStep(0)
+  }
+
+  // Navigate steps
+  const nextStep = () => {
+    if (cookingRecipe && currentStep < cookingRecipe.instructions.length - 1) {
+      setCurrentStep(currentStep + 1)
+    }
+  }
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
+
+  // Finish cooking
+  const finishCooking = () => {
+    alert(`Finished cooking "${cookingRecipe.name}"! Ingredients have been removed from your pantry.`)
+    closeCookingMode()
+    // TODO: Call Flask API to update pantry
+    // recipeApi.cookRecipe(cookingRecipe.id)
   }
 
   // Get substitutes for an ingredient
@@ -401,9 +432,22 @@ export function Recipes() {
                 {/* Instructions */}
                 <div>
                   <h3 className="font-semibold mb-3">Instructions</h3>
-                  <p className="text-muted-foreground whitespace-pre-line">
-                    {selectedRecipe.instructions}
-                  </p>
+                  {Array.isArray(selectedRecipe.instructions) ? (
+                    <ol className="space-y-2">
+                      {selectedRecipe.instructions.map((instruction, idx) => (
+                        <li key={idx} className="flex gap-3">
+                          <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm flex-shrink-0">
+                            {instruction.step_number}
+                          </span>
+                          <p className="text-muted-foreground">{instruction.instruction_text}</p>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <p className="text-muted-foreground whitespace-pre-line">
+                      {selectedRecipe.instructions}
+                    </p>
+                  )}
                 </div>
                 
                 {/* Shopping List */}
@@ -475,6 +519,220 @@ export function Recipes() {
           <DialogFooter>
             <Button onClick={() => setShowSubstitutes(null)}>Close</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cooking Mode Dialog */}
+      <Dialog open={!!cookingRecipe} onOpenChange={closeCookingMode}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {cookingRecipe && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    <Flame className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-2xl">Cooking: {cookingRecipe.name}</DialogTitle>
+                    <DialogDescription className="flex items-center gap-4 mt-1">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        Prep: {cookingRecipe.prepTime} min
+                      </span>
+                      {cookingRecipe.cookTime && (
+                        <span className="flex items-center gap-1">
+                          <Flame className="h-4 w-4" />
+                          Cook: {cookingRecipe.cookTime} min
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        {cookingRecipe.servings} servings
+                      </span>
+                    </DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              <Tabs defaultValue="steps" className="mt-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
+                  <TabsTrigger value="steps">Steps</TabsTrigger>
+                </TabsList>
+
+                {/* Ingredients Tab */}
+                <TabsContent value="ingredients" className="mt-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Ingredients Needed</CardTitle>
+                      {cookingRecipe.description && (
+                        <CardDescription>{cookingRecipe.description}</CardDescription>
+                      )}
+                    </CardHeader>
+                    <CardContent>
+                      {/* Group ingredients by their group property */}
+                      {(() => {
+                        const groups = {}
+                        cookingRecipe.ingredients.forEach(ing => {
+                          const group = ing.group || 'Main'
+                          if (!groups[group]) groups[group] = []
+                          groups[group].push(ing)
+                        })
+                        
+                        return Object.entries(groups).map(([groupName, ingredients]) => (
+                          <div key={groupName} className="mb-6 last:mb-0">
+                            <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+                              {groupName}
+                            </h4>
+                            <ul className="space-y-3">
+                              {ingredients.map((ingredient, index) => (
+                                <li key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <Check className="h-4 w-4 text-primary" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="flex items-baseline gap-2">
+                                      <span className="font-semibold text-lg">
+                                        {ingredient.quantity} {ingredient.unit}
+                                      </span>
+                                      <span className="text-foreground">{ingredient.name}</span>
+                                    </div>
+                                    {ingredient.preparation_notes && (
+                                      <p className="text-sm text-muted-foreground mt-1">
+                                        {ingredient.preparation_notes}
+                                      </p>
+                                    )}
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))
+                      })()}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Steps Tab */}
+                <TabsContent value="steps" className="mt-4">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg">
+                          Step {currentStep + 1} of {cookingRecipe.instructions.length}
+                        </CardTitle>
+                        <div className="flex gap-1">
+                          {cookingRecipe.instructions.map((_, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setCurrentStep(idx)}
+                              className={`w-3 h-3 rounded-full transition-colors ${
+                                idx === currentStep 
+                                  ? 'bg-primary' 
+                                  : idx < currentStep 
+                                    ? 'bg-green-500' 
+                                    : 'bg-muted-foreground/30'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="min-h-[200px] flex flex-col">
+                        {/* Progress bar */}
+                        <div className="w-full bg-muted rounded-full h-2 mb-6">
+                          <div 
+                            className="bg-primary h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${((currentStep + 1) / cookingRecipe.instructions.length) * 100}%` }}
+                          />
+                        </div>
+
+                        {/* Current instruction */}
+                        <div className="flex-1 flex items-center justify-center">
+                          <div className="text-center max-w-2xl">
+                            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                              <span className="text-2xl font-bold text-primary">
+                                {cookingRecipe.instructions[currentStep].step_number}
+                              </span>
+                            </div>
+                            <p className="text-xl leading-relaxed">
+                              {cookingRecipe.instructions[currentStep].instruction_text}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Navigation buttons */}
+                        <div className="flex items-center justify-between mt-8 pt-4 border-t">
+                          <Button
+                            variant="outline"
+                            onClick={prevStep}
+                            disabled={currentStep === 0}
+                          >
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Previous
+                          </Button>
+
+                          {currentStep === cookingRecipe.instructions.length - 1 ? (
+                            <Button onClick={finishCooking} className="bg-green-600 hover:bg-green-700">
+                              <Check className="mr-2 h-4 w-4" />
+                              Finish Cooking
+                            </Button>
+                          ) : (
+                            <Button onClick={nextStep}>
+                              Next Step
+                              <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* All steps overview */}
+                  <Card className="mt-4">
+                    <CardHeader>
+                      <CardTitle className="text-sm">All Steps</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ol className="space-y-2">
+                        {cookingRecipe.instructions.map((instruction, idx) => (
+                          <li 
+                            key={idx}
+                            onClick={() => setCurrentStep(idx)}
+                            className={`flex gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                              idx === currentStep 
+                                ? 'bg-primary/10 border border-primary/20' 
+                                : 'hover:bg-muted/50'
+                            }`}
+                          >
+                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0 ${
+                              idx < currentStep 
+                                ? 'bg-green-500 text-white' 
+                                : idx === currentStep 
+                                  ? 'bg-primary text-primary-foreground' 
+                                  : 'bg-muted text-muted-foreground'
+                            }`}>
+                              {idx < currentStep ? <Check className="h-3 w-3" /> : instruction.step_number}
+                            </span>
+                            <p className={`text-sm ${idx === currentStep ? 'font-medium' : 'text-muted-foreground'}`}>
+                              {instruction.instruction_text}
+                            </p>
+                          </li>
+                        ))}
+                      </ol>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+
+              <DialogFooter className="mt-4">
+                <Button variant="outline" onClick={closeCookingMode}>
+                  Exit Cooking Mode
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
