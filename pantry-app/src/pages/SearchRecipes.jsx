@@ -5,12 +5,13 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Search, Clock, Users, ExternalLink, ShoppingCart, Check, X, Loader2, ChefHat, Flame, ArrowLeft, ArrowRight, BookmarkPlus, Sparkles, PartyPopper } from 'lucide-react'
+import { Search, Clock, Users, ExternalLink, ShoppingCart, Check, X, Loader2, ChefHat, Flame, ArrowLeft, ArrowRight, BookmarkPlus, Sparkles, PartyPopper, BookOpen } from 'lucide-react'
 import { mockPantryItems } from '@/lib/mockData'
 
 export function SearchRecipes() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [searchResults, setSearchResults] = useState([])
   const [hasSearched, setHasSearched] = useState(false)
   const [selectedRecipe, setSelectedRecipe] = useState(null)
@@ -19,21 +20,22 @@ export function SearchRecipes() {
   const [notification, setNotification] = useState({ open: false, title: '', message: '', type: 'success' })
 
   // Simulate recipe search
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return
+  const handleSearch = async (query = searchQuery) => {
+    if (!query.trim()) return
     
+    setSearchQuery(query)
     setIsSearching(true)
     setHasSearched(true)
     
     // TODO: Replace with actual Flask API call
-    // const results = await recipeApi.searchOnline(searchQuery)
+    // const results = await recipeApi.searchOnline(query)
     
     // Simulated search results
     setTimeout(() => {
       const mockResults = [
         {
           id: 1,
-          name: `${searchQuery} Classic Style`,
+          name: `${query} Classic Style`,
           description: 'A delicious classic recipe perfect for any occasion.',
           source: 'AllRecipes',
           sourceUrl: 'https://allrecipes.com',
@@ -54,11 +56,11 @@ export function SearchRecipes() {
             { step_number: 4, instruction_text: 'Add broccoli florets and sauté for 3-4 minutes until tender-crisp.' },
             { step_number: 5, instruction_text: 'Add soy sauce and stir to combine. Serve over rice and enjoy!' },
           ],
-          image: 'https://via.placeholder.com/300x200/22c55e/ffffff?text=Recipe+1'
+          image: 'https://via.placeholder.com/300x200/22c55e/22c55e'
         },
         {
           id: 2,
-          name: `Easy ${searchQuery}`,
+          name: `Easy ${query}`,
           description: 'A quick and easy recipe ready in under 30 minutes.',
           source: 'Food Network',
           sourceUrl: 'https://foodnetwork.com',
@@ -79,11 +81,11 @@ export function SearchRecipes() {
             { step_number: 4, instruction_text: 'Drain pasta and add to the skillet. Toss with fresh basil.' },
             { step_number: 5, instruction_text: 'Top with freshly grated Parmesan and serve immediately.' },
           ],
-          image: 'https://via.placeholder.com/300x200/3b82f6/ffffff?text=Recipe+2'
+          image: 'https://via.placeholder.com/300x200/3b82f6/3b82f6'
         },
         {
           id: 3,
-          name: `Healthy ${searchQuery} Bowl`,
+          name: `Healthy ${query} Bowl`,
           description: 'A nutritious and wholesome bowl packed with goodness.',
           source: 'Bon Appetit',
           sourceUrl: 'https://bonappetit.com',
@@ -104,11 +106,11 @@ export function SearchRecipes() {
             { step_number: 4, instruction_text: 'Add sliced avocado and place egg on top.' },
             { step_number: 5, instruction_text: 'Drizzle with lemon juice, season with salt and pepper, and serve.' },
           ],
-          image: 'https://via.placeholder.com/300x200/a855f7/ffffff?text=Recipe+3'
+          image: 'https://via.placeholder.com/300x200/a855f7/a855f7'
         },
         {
           id: 4,
-          name: `${searchQuery} for Two`,
+          name: `${query} for Two`,
           description: 'A romantic dinner perfect for two people.',
           source: 'Tasty',
           sourceUrl: 'https://tasty.co',
@@ -129,7 +131,7 @@ export function SearchRecipes() {
             { step_number: 4, instruction_text: 'Top salmon with lemon slices. Season everything with salt and pepper.' },
             { step_number: 5, instruction_text: 'Bake for 20-25 minutes until salmon is cooked through and broccoli is tender.' },
           ],
-          image: 'https://via.placeholder.com/300x200/f59e0b/ffffff?text=Recipe+4'
+          image: 'https://via.placeholder.com/300x200/f59e0b/f59e0b'
         },
       ]
       
@@ -223,6 +225,19 @@ export function SearchRecipes() {
     // recipeApi.addRecipe(cookingRecipe)
   }
 
+  // Add missing ingredients to shopping list
+  const handleAddToShoppingList = (recipe) => {
+    const missingIngredients = checkPantryAvailability(recipe.ingredients).missing
+    // TODO: Call Flask API to add items to shopping list
+    // shoppingListApi.addItems(missingIngredients)
+    setNotification({
+      open: true,
+      title: 'Added to Shopping List!',
+      message: `${missingIngredients.length} missing ingredient${missingIngredients.length > 1 ? 's' : ''} for "${recipe.name}" have been added to your shopping list.`,
+      type: 'success'
+    })
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -289,14 +304,20 @@ export function SearchRecipes() {
                       alt={recipe.name}
                       className="w-full h-full object-cover"
                     />
-                    <Badge className="absolute top-2 right-2 bg-black/70">
-                      {recipe.source}
-                    </Badge>
                   </div>
                   
                   <CardHeader>
                     <CardTitle>{recipe.name}</CardTitle>
                     <CardDescription className="flex items-center gap-4">
+                      <a 
+                        href={recipe.sourceUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 hover:text-primary transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        {recipe.source}
+                      </a>
                       <span className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
                         {recipe.prepTime} min
@@ -383,6 +404,76 @@ export function SearchRecipes() {
               )
             })}
           </div>
+          
+          {/* Show More Button */}
+          <div className="flex justify-center pt-4">
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={() => {
+                setIsLoadingMore(true)
+                // Simulate loading more recipes
+                setTimeout(() => {
+                  const moreRecipes = [
+                    {
+                      id: searchResults.length + 1,
+                      name: `${searchQuery} Deluxe`,
+                      description: 'A premium version of this classic dish.',
+                      source: 'Epicurious',
+                      sourceUrl: 'https://epicurious.com',
+                      prepTime: 20,
+                      cookTime: 40,
+                      servings: 4,
+                      ingredients: [
+                        { name: 'Chicken Breast', quantity: '2', unit: 'lbs', group: 'Protein' },
+                        { name: 'Olive Oil', quantity: '3', unit: 'tbsp', group: 'Main' },
+                        { name: 'Garlic', quantity: '4', unit: 'cloves', group: 'Aromatics' },
+                      ],
+                      instructions: [
+                        { step_number: 1, instruction_text: 'Prepare all ingredients.' },
+                        { step_number: 2, instruction_text: 'Cook according to directions.' },
+                        { step_number: 3, instruction_text: 'Serve and enjoy!' },
+                      ],
+                      image: 'https://via.placeholder.com/300x200/ef4444/ef4444'
+                    },
+                    {
+                      id: searchResults.length + 2,
+                      name: `Quick ${searchQuery}`,
+                      description: 'A fast weeknight version ready in minutes.',
+                      source: 'Serious Eats',
+                      sourceUrl: 'https://seriouseats.com',
+                      prepTime: 5,
+                      cookTime: 15,
+                      servings: 2,
+                      ingredients: [
+                        { name: 'Pasta', quantity: '1', unit: 'box', group: 'Main' },
+                        { name: 'Tomatoes', quantity: '2', unit: 'count', group: 'Vegetables' },
+                        { name: 'Cheese', quantity: '4', unit: 'oz', group: 'Dairy' },
+                      ],
+                      instructions: [
+                        { step_number: 1, instruction_text: 'Boil pasta.' },
+                        { step_number: 2, instruction_text: 'Add toppings.' },
+                        { step_number: 3, instruction_text: 'Serve hot!' },
+                      ],
+                      image: 'https://via.placeholder.com/300x200/06b6d4/06b6d4'
+                    },
+                  ]
+                  setSearchResults([...searchResults, ...moreRecipes])
+                  setIsLoadingMore(false)
+                }, 1000)
+              }}
+              disabled={isLoadingMore}
+            >
+              {isLoadingMore ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                'Show More Recipes'
+              )}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -422,10 +513,7 @@ export function SearchRecipes() {
                   key={term}
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    setSearchQuery(term)
-                    setTimeout(() => handleSearch(), 100)
-                  }}
+                  onClick={() => handleSearch(term)}
                 >
                   {term}
                 </Button>
@@ -545,25 +633,40 @@ export function SearchRecipes() {
                   <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
                     <h3 className="font-semibold text-orange-600 flex items-center gap-2 mb-2">
                       <ShoppingCart className="h-4 w-4" />
-                      Shopping List
+                      Missing Ingredients
                     </h3>
-                    <ul className="space-y-1 text-sm text-orange-700">
+                    <ul className="space-y-1 text-sm text-orange-700 mb-3">
                       {checkPantryAvailability(selectedRecipe.ingredients).missing.map((item, i) => (
                         <li key={i}>• {item.quantity} {item.unit} {item.name}</li>
                       ))}
                     </ul>
+                    <Button 
+                      size="sm" 
+                      className="w-full bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-200"
+                      onClick={() => handleAddToShoppingList(selectedRecipe)}
+                    >
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      Add to Shopping List
+                    </Button>
                   </div>
                 )}
 
                 {/* Source Link */}
-                <div className="pt-2">
-                  <Button variant="link" className="p-0 h-auto" asChild>
-                    <a href={selectedRecipe.sourceUrl} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="mr-1 h-4 w-4" />
-                      View original on {selectedRecipe.source}
-                    </a>
-                  </Button>
-                </div>
+                {selectedRecipe.source && selectedRecipe.sourceUrl ? (
+                  <div className="pt-2">
+                    <Button variant="link" className="p-0 h-auto" asChild>
+                      <a href={selectedRecipe.sourceUrl} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="mr-1 h-4 w-4" />
+                        View original on {selectedRecipe.source}
+                      </a>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="pt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <BookOpen className="h-4 w-4" />
+                    <span>This is your original recipe</span>
+                  </div>
+                )}
               </div>
               
               <DialogFooter className="gap-2 sm:gap-0">

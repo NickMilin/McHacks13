@@ -87,6 +87,33 @@ export const mockRecipes = [
     cookTime: 5,
     servings: 2,
   },
+  {
+    id: 4,
+    name: 'Beef Tacos',
+    description: 'Delicious homemade beef tacos with fresh toppings.',
+    source: 'Food Network',
+    sourceUrl: 'https://foodnetwork.com/recipes/beef-tacos',
+    ingredients: [
+      { name: 'Ground Beef', quantity: '1', unit: 'lb', preparation_notes: 'lean', group: 'Protein' },
+      { name: 'Taco Shells', quantity: '8', unit: 'count', preparation_notes: 'hard or soft', group: 'Base' },
+      { name: 'Lettuce', quantity: '1', unit: 'head', preparation_notes: 'shredded', group: 'Toppings' },
+      { name: 'Tomatoes', quantity: '2', unit: 'count', preparation_notes: 'diced', group: 'Toppings' },
+      { name: 'Cheese', quantity: '4', unit: 'oz', preparation_notes: 'shredded cheddar', group: 'Toppings' },
+      { name: 'Sour Cream', quantity: '0.5', unit: 'cup', group: 'Toppings' },
+      { name: 'Taco Seasoning', quantity: '1', unit: 'packet', group: 'Seasoning' },
+    ],
+    instructions: [
+      { step_number: 1, instruction_text: 'Brown the ground beef in a large skillet over medium-high heat, breaking it up as it cooks.' },
+      { step_number: 2, instruction_text: 'Drain excess fat, then add taco seasoning and water according to packet directions. Simmer for 5 minutes.' },
+      { step_number: 3, instruction_text: 'While beef simmers, prepare toppings: shred lettuce, dice tomatoes, and shred cheese.' },
+      { step_number: 4, instruction_text: 'Warm taco shells according to package directions.' },
+      { step_number: 5, instruction_text: 'Assemble tacos by filling shells with seasoned beef and your choice of toppings.' },
+      { step_number: 6, instruction_text: 'Top with sour cream and serve immediately. Enjoy!' },
+    ],
+    prepTime: 15,
+    cookTime: 15,
+    servings: 4,
+  },
 ];
 
 export const mockSubstitutes = {
@@ -109,6 +136,7 @@ export const categoryColors = {
   dairy: '#3b82f6',
   fruit: '#a855f7',
   fat: '#eab308',
+  condiment: '#ec4899',
   other: '#6b7280',
 };
 
@@ -119,5 +147,6 @@ export const categoryLabels = {
   dairy: 'Dairy',
   fruit: 'Fruits',
   fat: 'Fats & Oils',
+  condiment: 'Condiments',
   other: 'Other',
 };

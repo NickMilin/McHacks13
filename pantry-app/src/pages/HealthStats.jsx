@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend } from 'recharts'
 import { mockPantryItems, categoryColors, categoryLabels } from '@/lib/mockData'
 import { TrendingUp, Apple, Wheat, Drumstick, Milk, Droplet } from 'lucide-react'
 
@@ -150,12 +150,12 @@ export function HealthStats() {
                     paddingAngle={2}
                     dataKey="value"
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    isAnimationActive={false}
                   >
                     {categoryStats.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -175,8 +175,7 @@ export function HealthStats() {
                 <BarChart data={categoryStats} layout="vertical">
                   <XAxis type="number" />
                   <YAxis type="category" dataKey="name" width={80} />
-                  <Tooltip />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]} isAnimationActive={false}>
                     {categoryStats.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}

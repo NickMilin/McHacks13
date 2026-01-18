@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { ShoppingCart, Plus, Trash2, Check, Download, Share2 } from 'lucide-react'
+import { ShoppingCart, Plus, Trash2, Check, Download, Share2, X } from 'lucide-react'
 import { mockRecipes, mockPantryItems, categoryLabels } from '@/lib/mockData'
 
 export function ShoppingList() {
@@ -11,6 +11,7 @@ export function ShoppingList() {
   const [newItemName, setNewItemName] = useState('')
   const [checkedItems, setCheckedItems] = useState(new Set())
   const [selectedRecipes, setSelectedRecipes] = useState(new Set([1, 2])) // Default selected recipes
+  const [removedItems, setRemovedItems] = useState(new Set()) // Track removed recipe items
 
   // Calculate missing ingredients from selected recipes
   const missingIngredients = useMemo(() => {
@@ -27,15 +28,16 @@ export function ShoppingList() {
           
           if (!inPantry) {
             const key = ingredient.name.toLowerCase()
+            const qty = parseFloat(ingredient.quantity) || 1
             if (missing.has(key)) {
               const existing = missing.get(key)
-              existing.quantity += ingredient.quantity
+              existing.quantity += qty
               existing.recipes.push(recipe.name)
             } else {
               missing.set(key, {
                 id: ingredient.name,
                 name: ingredient.name,
-                quantity: ingredient.quantity,
+                quantity: qty,
                 unit: ingredient.unit,
                 recipes: [recipe.name],
                 category: 'other'
@@ -45,8 +47,9 @@ export function ShoppingList() {
         })
       })
     
-    return Array.from(missing.values())
-  }, [selectedRecipes])
+    // Filter out removed items
+    return Array.from(missing.values()).filter(item => !removedItems.has(item.id))
+  }, [selectedRecipes, removedItems])
 
   // All shopping list items
   const allItems = [...missingIngredients, ...customItems]
@@ -80,11 +83,23 @@ export function ShoppingList() {
     setNewItemName('')
   }
 
-  // Remove custom item
-  const handleRemoveItem = (itemId) => {
-    setCustomItems(customItems.filter(item => item.id !== itemId))
-    checkedItems.delete(itemId)
+  // Remove item (custom or recipe-based)
+  const handleRemoveItem = (item) => {
+    if (item.isCustom) {
+      setCustomItems(customItems.filter(i => i.id !== item.id))
+    } else {
+      setRemovedItems(new Set([...removedItems, item.id]))
+    }
+    checkedItems.delete(item.id)
     setCheckedItems(new Set(checkedItems))
+  }
+
+  // Clear entire list
+  const clearAllItems = () => {
+    const allRecipeItemIds = missingIngredients.map(item => item.id)
+    setRemovedItems(new Set([...removedItems, ...allRecipeItemIds]))
+    setCustomItems([])
+    setCheckedItems(new Set())
   }
 
   // Toggle item checked
@@ -98,10 +113,19 @@ export function ShoppingList() {
     setCheckedItems(newChecked)
   }
 
-  // Clear all checked
+  // Clear all checked items
   const clearChecked = () => {
-    const remainingCustom = customItems.filter(item => !checkedItems.has(item.id))
-    setCustomItems(remainingCustom)
+    const checkedCustomItems = customItems.filter(item => checkedItems.has(item.id))
+    const checkedRecipeItems = missingIngredients.filter(item => checkedItems.has(item.id))
+    
+    // Remove checked custom items
+    setCustomItems(customItems.filter(item => !checkedItems.has(item.id)))
+    
+    // Add checked recipe items to removed set
+    const newRemoved = new Set(removedItems)
+    checkedRecipeItems.forEach(item => newRemoved.add(item.id))
+    setRemovedItems(newRemoved)
+    
     setCheckedItems(new Set())
   }
 
@@ -205,11 +229,19 @@ export function ShoppingList() {
                   {uncheckedCount} item{uncheckedCount !== 1 ? 's' : ''} to buy
                 </CardDescription>
               </div>
-              {checkedItems.size > 0 && (
-                <Button variant="outline" size="sm" onClick={clearChecked}>
-                  Clear Checked
-                </Button>
-              )}
+              <div className="flex gap-2">
+                {checkedItems.size > 0 && (
+                  <Button variant="outline" size="sm" onClick={clearChecked}>
+                    Clear Checked
+                  </Button>
+                )}
+                {allItems.length > 0 && (
+                  <Button variant="outline" size="sm" onClick={clearAllItems} className="text-destructive hover:text-destructive">
+                    <Trash2 className="mr-1 h-4 w-4" />
+                    Clear All
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -260,15 +292,14 @@ export function ShoppingList() {
                       </div>
                     </div>
                     
-                    {item.isCustom && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveItem(item.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleRemoveItem(item)}
+                      className="flex-shrink-0 hover:bg-destructive/10"
+                    >
+                      <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                    </Button>
                   </div>
                 ))}
               </div>
