@@ -1,22 +1,20 @@
-Item,Code,Taxable,Quantity,UnitPrice,TotalPrice,TaxExempt
-12 AT 1 FOR,1.24,,14.88,0
-RNCH QSO FR,007456200100,F,3.68,0
-OM SMKD HAM,004470001903,F,6.64,0
-SPREADS,002740080024,F,3.43,0
-CARNE PICADA,025995731222,F,12.22,0
-MILANESA,025999641448,F,14.48,0
-BNLS CHOPS,026279000790,F,7.90,0
-PREMIUM,004400000057,F,3.58,N
-BNLS CK BRST,026163881295,F,12.95,N
-HST CHOCO CU,088810911001,F,3.48,N
-STRAW,071441567922,,,1.98,X
-POTATOES,003338353010,F,4.24,N
-MAND 3 BAG,081865401032,F,3.97,N
-FNBL STRW 22,004142005461,F,4.78,N
-BEVERAGE,007618300771,F,5.88,N
-LIME BULK,0000000004048KF,,,1.90,N
-PEACHES,0000000004038KF,1.96 lb @ 1 lb /1.98,,3.88,N
-NECTARINES,0000000004036KF,1.60 lb @ 1 lb /2.32,,3.71,N
-AVOCADO,0000000004046KF,3 AT 1 FOR 0.77,,2.31,N
-SITE MERCH,0000000000487K,,158.20,T
-BREAD,002412601169,F,1.96,0
+food_name,quantity,unit,food_category
+Barbecue Chicken,1,null,Proteins
+Ranch Queso Fresco,1,null,Dairy
+Smoked Ham,1,null,Proteins
+Spreads,1,null,Dairy
+Carne Picada,1,null,Proteins
+Milanesa,1,null,Proteins
+Boneless Pork Chops,1,null,Proteins
+Premium Crackers,1,null,Grains
+Boneless Chicken Breast,1,null,Proteins
+Chocolate Cupcakes,1,null,Grains
+Strawberries,1,null,Fruits
+Potatoes,1,null,Vegetables
+Mandarins,1,null,Fruits
+Strawberries,1,null,Fruits
+Lime,5,null,Fruits
+Peaches,1.96,lb,Fruits
+Nectarines,1.60,lb,Fruits
+Avocado,3,null,Fruits
+Bread,1,null,Grains

@@ -170,7 +170,7 @@ if __name__ == "__main__":
         output = result.get("outputs")
         if output:
             print("\nPipeline output:")
-            print(output)
+            print(output.get("reciept_text"))
         else:
             print("\nNo output found in result")
             
