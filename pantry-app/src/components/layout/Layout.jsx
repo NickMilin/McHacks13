@@ -1,6 +1,5 @@
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
-import { ChatBot } from '../ChatBot'
 
 export function Layout() {
   return (
@@ -11,7 +10,6 @@ export function Layout() {
           <Outlet />
         </div>
       </main>
-      <ChatBot />
     </div>
   )
 }

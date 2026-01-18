@@ -93,88 +93,11 @@ def get_stats():
     return jsonify({'error': 'Not implemented in this build'}), 501
 
 # ============================================================
-# CLAUDE AI CHAT
-# ============================================================
-
-@app.route('/api/chat', methods=['POST'])
-def chat():
-    """
-    Chat with AI for pantry assistance.
-    Supports either OpenAI (ChatGPT) via OPENAI_API_KEY or Anthropic (Claude) via ANTHROPIC_API_KEY.
-    """
-    data = request.json
-    messages = data.get('messages', [])
-
-    # System prompt for pantry assistant context
-    system_prompt = """You are a helpful pantry and cooking assistant called PantryPal. 
-You help users with:
-- Recipe suggestions based on available ingredients
-- Ingredient substitutions for dietary restrictions or missing items
-- Meal planning tips
-- Food storage and expiration guidance
-- Nutrition information
-- Cooking tips and techniques
-
-Keep responses concise, friendly, and practical. Focus on being helpful for home cooks managing their kitchen pantry."""
-
-    # Prefer OpenAI if configured, otherwise fall back to Anthropic
-    openai_key = os.environ.get('OPENAI_API_KEY')
-    anthropic_key = os.environ.get('ANTHROPIC_API_KEY')
-
-    try:
-        if openai_key:
-            # Use OpenAI (ChatGPT)
-            from openai import OpenAI
-            client = OpenAI(api_key=openai_key)
-
-            # Convert messages, prepend system prompt
-            openai_messages = [{'role': 'system', 'content': system_prompt}]
-            for msg in messages:
-                if msg.get('role') in ['user', 'assistant']:
-                    openai_messages.append({'role': msg['role'], 'content': msg['content']})
-
-            completion = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=openai_messages,
-                temperature=0.7,
-                max_tokens=512
-            )
-            assistant_message = completion.choices[0].message.content
-            return jsonify({'message': assistant_message})
-
-        elif anthropic_key:
-            # Use Anthropic (Claude)
-            import anthropic
-            client = anthropic.Anthropic(api_key=anthropic_key)
-
-            claude_messages = []
-            for msg in messages:
-                if msg.get('role') in ['user', 'assistant']:
-                    claude_messages.append({'role': msg['role'], 'content': msg['content']})
-
-            response = client.messages.create(
-                model="claude-sonnet-4-20250514",
-                max_tokens=1024,
-                system=system_prompt,
-                messages=claude_messages
-            )
-
-            assistant_message = response.content[0].text
-            return jsonify({'message': assistant_message})
-
-        else:
-            return jsonify({'error': 'No AI key configured. Set OPENAI_API_KEY or ANTHROPIC_API_KEY.'}), 500
-
-    except Exception as e:
-        print(f"AI chat error: {e}")
-        return jsonify({'error': str(e)}), 500
-
-# ============================================================
 # MAIN
 # ============================================================
 
 if __name__ == '__main__':
     print("🍳 PantryPal Backend Starting...")
-    print("📡 API available at http://localhost:5000/api")
+    print("📡 API available at http://localhost:5001/api")
     print("💡 Connect your Gumloop workflows in the TODO sections")
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)
