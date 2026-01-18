@@ -149,6 +149,18 @@ export function Recipes() {
     // recipeApi.cookRecipe(cookingRecipe.id)
   }
 
+  // Add missing ingredients to shopping list
+  const handleAddToShoppingList = (recipe) => {
+    const missingIngredients = getMissingIngredients(recipe)
+    // TODO: Call Flask API to add items to shopping list
+    // shoppingListApi.addItems(missingIngredients)
+    setNotification({
+      open: true,
+      title: 'Added to Shopping List!',
+      message: `${missingIngredients.length} missing ingredient${missingIngredients.length > 1 ? 's' : ''} for "${recipe.name}" have been added to your shopping list.`
+    })
+  }
+
   // Get substitutes for an ingredient
   const getSubstitutes = (ingredientName) => {
     return mockSubstitutes[ingredientName] || []
@@ -471,13 +483,21 @@ export function Recipes() {
                   <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
                     <h3 className="font-semibold text-orange-500 flex items-center gap-2 mb-2">
                       <ShoppingCart className="h-4 w-4" />
-                      Shopping List
+                      Missing Ingredients
                     </h3>
-                    <ul className="space-y-1 text-sm text-orange-500">
+                    <ul className="space-y-1 text-sm text-orange-500 mb-3">
                       {getMissingIngredients(selectedRecipe).map((item, i) => (
                         <li key={i}>• {item.quantity} {item.unit} {item.name}</li>
                       ))}
                     </ul>
+                    <Button 
+                      size="sm" 
+                      className="w-full bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-200"
+                      onClick={() => handleAddToShoppingList(selectedRecipe)}
+                    >
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      Add to Shopping List
+                    </Button>
                   </div>
                 )}
 
