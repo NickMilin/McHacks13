@@ -9,10 +9,13 @@ from PIL import Image
 load_dotenv(override=True)
 gumloop_api_key = os.getenv('GUMLOOP')
 
-if not gumloop_api_key:
-    raise ValueError("GUMLOOP API key not found in environment variables")
+# Don't crash on import - defer error to runtime when the key is actually needed
+def _check_api_key():
+    if not gumloop_api_key:
+        raise ValueError("GUMLOOP API key not found in environment variables. Add GUMLOOP=your_key to .env file.")
 
 def upload_image_to_gumloop(image_path, user_id):
+    _check_api_key()
     # Check if file exists
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Image file not found: {image_path}")
@@ -144,7 +147,7 @@ def run_pipeline(image_path, user_id, saved_item_id):
     file_name = upload_image_to_gumloop(image_path, user_id)
     pipeline_response = start_pipeline(file_name, user_id, saved_item_id)
     result = get_pipeline_data(pipeline_response, user_id)
-    return result.get("outputs").get("reciept_text")
+    return result.get("outputs").get("receipt_text")
     
 
 
