@@ -73,7 +73,7 @@ export function HealthStats() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">Health Stats</h1>
-        <p className="text-muted-foreground">
+        <p className="text-slate-700 dark:text-slate-300">
           Track your pantry's nutritional balance and food group distribution
         </p>
       </div>
@@ -85,12 +85,12 @@ export function HealthStats() {
             <CardDescription>Balance Score</CardDescription>
             <CardTitle className="text-4xl flex items-center gap-2">
               {balanceScore}
-              <span className="text-lg text-muted-foreground">/100</span>
+              <span className="text-lg text-slate-700 dark:text-slate-300">/100</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Progress value={balanceScore} className="h-2" />
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-slate-700 dark:text-slate-300 mt-2">
               {balanceScore >= 80 ? '🌟 Excellent balance!' : 
                balanceScore >= 60 ? '👍 Good balance' : 
                '💡 Room for improvement'}
@@ -104,7 +104,7 @@ export function HealthStats() {
             <CardTitle className="text-4xl">{totalItems}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-slate-700 dark:text-slate-300">
               across {categoryStats.length} food categories
             </p>
           </CardContent>
@@ -122,7 +122,7 @@ export function HealthStats() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-slate-700 dark:text-slate-300">
               {categoryStats[0]?.value} items ({categoryPercentages[0]?.percentage}%)
             </p>
           </CardContent>
@@ -214,7 +214,7 @@ export function HealthStats() {
                     </div>
                     <div className="text-right">
                       <span className="font-semibold">{stat.percentage}%</span>
-                      <span className="text-muted-foreground text-sm ml-2">
+                      <span className="text-slate-700 dark:text-slate-300 text-sm ml-2">
                         ({stat.value} items)
                       </span>
                     </div>
@@ -230,7 +230,7 @@ export function HealthStats() {
                     )}
                   </div>
                   {recommended > 0 && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-slate-700 dark:text-slate-300">
                       Recommended: {recommended}% • 
                       {stat.percentage > recommended 
                         ? ` ${stat.percentage - recommended}% above target`

@@ -1,43 +1,26 @@
 import { useState, useEffect, createContext, useContext } from 'react'
-import { Moon, Sun } from 'lucide-react'
 
 // Context to control Light/Dark theme
 const ThemeContext = createContext({
-  theme: 'light',
+  theme: 'dark',
   toggleTheme: () => {},
-  isDark: false
+  isDark: true
 })
 
 export const useTheme = () => useContext(ThemeContext)
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
-    // Check localStorage or system preference
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('pantrypal-theme')
-      if (saved) return saved
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-    }
-    return 'light'
-  })
+  // Always dark mode
+  const [theme] = useState('dark')
 
   // Apply dark class to document
   useEffect(() => {
     const root = document.documentElement
-    if (theme === 'dark') {
-      root.classList.add('dark')
-    } else {
-      root.classList.remove('dark')
-    }
-    localStorage.setItem('pantrypal-theme', theme)
-  }, [theme])
-
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light')
-  }
+    root.classList.add('dark')
+  }, [])
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isDark: theme === 'dark' }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme: () => {}, isDark: true }}>
       {children}
     </ThemeContext.Provider>
   )
@@ -133,7 +116,15 @@ export function ThemeBackground() {
         <Cloud className="top-[15%]" style={{ left: '-10%', animationDuration: '60s' }} />
         <Cloud className="top-[30%]" style={{ left: '30%', animationDuration: '45s' }} size="small" />
         <Cloud className="top-[8%]" style={{ left: '60%', animationDuration: '55s' }} size="large" />
+        <Cloud className="top-[22%]" style={{ left: '10%', animationDuration: '70s' }} size="small" />
+        <Cloud className="top-[12%]" style={{ left: '80%', animationDuration: '50s' }} size="medium" />
+        <Cloud className="top-[35%]" style={{ left: '-5%', animationDuration: '65s' }} size="large" />
+        <Cloud className="top-[5%]" style={{ left: '40%', animationDuration: '75s' }} size="small" />
+        <Cloud className="top-[25%]" style={{ left: '70%', animationDuration: '58s' }} size="medium" />
       </div>
+
+      {/* Birds for light mode */}
+      {!isDark && <FlyingBirds />}
 
       {/* Moon for dark mode */}
       <div
@@ -259,6 +250,70 @@ function ShootingStar() {
         boxShadow: '0 0 6px 2px rgba(255,255,255,0.8)'
       }}
     />
+  )
+}
+
+// Flying birds component for light mode
+function FlyingBirds() {
+  const [birds, setBirds] = useState([])
+
+  useEffect(() => {
+    // Generate initial birds
+    const generateBirds = () => {
+      const newBirds = []
+      for (let i = 0; i < 5; i++) {
+        newBirds.push({
+          id: i,
+          top: 50 + Math.random() * 35, // Bottom half (50-85%)
+          delay: Math.random() * 20,
+          duration: 15 + Math.random() * 15, // 15-30s to cross
+          size: 0.6 + Math.random() * 0.4, // Scale 0.6-1
+          direction: Math.random() > 0.5 ? 1 : -1 // Left or right
+        })
+      }
+      setBirds(newBirds)
+    }
+    generateBirds()
+  }, [])
+
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      {birds.map((bird) => (
+        <div
+          key={bird.id}
+          className="absolute animate-bird-fly"
+          style={{
+            top: `${bird.top}%`,
+            animationDelay: `${bird.delay}s`,
+            animationDuration: `${bird.duration}s`,
+            transform: `scale(${bird.size}) scaleX(${bird.direction})`,
+            '--bird-direction': bird.direction
+          }}
+        >
+          <Bird />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// Single bird SVG component
+function Bird() {
+  return (
+    <svg
+      width="24"
+      height="12"
+      viewBox="0 0 24 12"
+      className="animate-bird-flap"
+    >
+      <path
+        d="M0 6 Q6 0 12 6 Q18 0 24 6"
+        fill="none"
+        stroke="#374151"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
   )
 }
 

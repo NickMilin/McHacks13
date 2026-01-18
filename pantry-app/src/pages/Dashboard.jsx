@@ -65,13 +65,13 @@ export function Dashboard() {
 
       {/* Expiring Soon Alert */}
       {expiringItems.length > 0 && (
-        <Card className="border-orange-200 bg-orange-50">
+        <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-orange-800">
-              <AlertCircle className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-orange-500" />
               Expiring Soon
             </CardTitle>
-            <CardDescription className="text-orange-700">
+            <CardDescription>
               These items will expire within 3 days
             </CardDescription>
           </CardHeader>
@@ -80,15 +80,15 @@ export function Dashboard() {
               {expiringItems.map(item => (
                 <div 
                   key={item.id} 
-                  className="rounded-full bg-orange-100 px-3 py-1 text-sm text-orange-800"
+                  className="rounded-full bg-orange-500/10 px-3 py-1 text-sm text-orange-500"
                 >
                   {item.name} - {new Date(item.expiryDate).toLocaleDateString()}
                 </div>
               ))}
             </div>
             <Link to="/suggestions">
-              <Button variant="outline" className="mt-4 border-orange-300 text-orange-800 hover:bg-orange-100">
-                <Lightbulb className="mr-2 h-4 w-4" />
+              <Button variant="outline" className="mt-4">
+                <Lightbulb className="mr-2 h-4 w-4 text-yellow-500" />
                 Get Recipe Suggestions
               </Button>
             </Link>
