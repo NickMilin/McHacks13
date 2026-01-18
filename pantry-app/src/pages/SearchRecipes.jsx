@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Link2, Clock, Users, ExternalLink, ShoppingCart, Check, X, Loader2, ChefHat, Flame, ArrowLeft, ArrowRight, BookmarkPlus, Sparkles, PartyPopper, Youtube, Globe } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { pantryFirebase } from '@/lib/pantryFirebase'
+import { recipesFirebase } from '@/lib/recipesFirebase'
 import { recipeApi } from '@/lib/api'
 
 export function SearchRecipes() {
@@ -106,15 +107,35 @@ export function SearchRecipes() {
   }
 
   // Add recipe to my recipes
-  const handleSaveRecipe = (recipe) => {
-    setNotification({
-      open: true,
-      title: 'Recipe Saved!',
-      message: `"${recipe.name}" has been added to your recipe library.`,
-      type: 'success'
-    })
-    // TODO: Call Flask API
-    // recipeApi.addRecipe(recipe)
+  const handleSaveRecipe = async (recipe) => {
+    try {
+      const recipeData = {
+        name: recipe.name,
+        description: recipe.description || '',
+        source: recipe.source || 'Imported',
+        sourceUrl: recipe.sourceUrl || '',
+        prepTime: recipe.prepTime || 0,
+        cookTime: recipe.cookTime || 0,
+        servings: recipe.servings || 4,
+        ingredients: recipe.ingredients || [],
+        instructions: recipe.instructions || []
+      }
+      await recipesFirebase.addRecipe(user.uid, recipeData)
+      setNotification({
+        open: true,
+        title: 'Recipe Saved!',
+        message: `"${recipe.name}" has been added to your recipe library.`,
+        type: 'success'
+      })
+    } catch (err) {
+      console.error('Error saving recipe:', err)
+      setNotification({
+        open: true,
+        title: 'Save Failed',
+        message: 'Failed to save recipe to your library.',
+        type: 'error'
+      })
+    }
   }
 
   // Start cooking mode
@@ -156,17 +177,38 @@ export function SearchRecipes() {
   }
 
   // Finish cooking and save to library
-  const finishAndSaveRecipe = () => {
+  const finishAndSaveRecipe = async () => {
     const recipeName = cookingRecipe.name
-    closeCookingMode()
-    setNotification({
-      open: true,
-      title: 'Cooking Complete & Saved!',
-      message: `You've finished cooking "${recipeName}"! The recipe has been saved to your library and ingredients have been removed from your pantry.`,
-      type: 'cooking-saved'
-    })
-    // TODO: Call Flask API to save recipe
-    // recipeApi.addRecipe(cookingRecipe)
+    try {
+      const recipeData = {
+        name: cookingRecipe.name,
+        description: cookingRecipe.description || '',
+        source: cookingRecipe.source || 'Imported',
+        sourceUrl: cookingRecipe.sourceUrl || '',
+        prepTime: cookingRecipe.prepTime || 0,
+        cookTime: cookingRecipe.cookTime || 0,
+        servings: cookingRecipe.servings || 4,
+        ingredients: cookingRecipe.ingredients || [],
+        instructions: cookingRecipe.instructions || []
+      }
+      await recipesFirebase.addRecipe(user.uid, recipeData)
+      closeCookingMode()
+      setNotification({
+        open: true,
+        title: 'Cooking Complete & Saved!',
+        message: `You've finished cooking "${recipeName}"! The recipe has been saved to your library and ingredients have been removed from your pantry.`,
+        type: 'cooking-saved'
+      })
+    } catch (err) {
+      console.error('Error saving recipe:', err)
+      closeCookingMode()
+      setNotification({
+        open: true,
+        title: 'Cooking Complete!',
+        message: `You've finished cooking "${recipeName}"! Note: Failed to save recipe to library.`,
+        type: 'error'
+      })
+    }
   }
 
   // Add missing ingredients to shopping list
