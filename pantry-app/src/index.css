@@ -12,7 +12,7 @@
   --color-secondary: oklch(0.965 0 0);
   --color-secondary-foreground: oklch(0.205 0 0);
   --color-muted: oklch(0.965 0 0);
-  --color-muted-foreground: oklch(0.556 0 0);
+  --color-muted-foreground: oklch(0.35 0 0);
   --color-accent: oklch(0.965 0 0);
   --color-accent-foreground: oklch(0.205 0 0);
   --color-destructive: oklch(0.577 0.245 27.325);
@@ -136,4 +136,30 @@
 
 .animate-cloud {
   animation: cloud-drift linear infinite;
+}
+/* Bird flying animations */
+@keyframes bird-fly {
+  0% {
+    left: -5%;
+  }
+  100% {
+    left: 105%;
+  }
+}
+
+@keyframes bird-flap {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.6);
+  }
+}
+
+.animate-bird-fly {
+  animation: bird-fly linear infinite;
+}
+
+.animate-bird-flap {
+  animation: bird-flap 0.3s ease-in-out infinite;
 }
