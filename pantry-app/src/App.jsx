@@ -86,6 +86,7 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <PantryProvider>
+            <ThemeBackground />
             <div className="relative z-10">
               <AppRoutes />
             </div>
