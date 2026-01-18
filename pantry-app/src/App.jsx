@@ -83,17 +83,15 @@ function AppRoutes() {
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <PantryProvider>
-          <ThemeProvider>
-            <ThemeBackground />
+      <ThemeProvider>
+        <AuthProvider>
+          <PantryProvider>
             <div className="relative z-10">
               <AppRoutes />
             </div>
-            <ThemeToggle />
-          </ThemeProvider>
-        </PantryProvider>
-      </AuthProvider>
+          </PantryProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   )
 }
